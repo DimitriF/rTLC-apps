@@ -22,7 +22,7 @@
 require("jpeg");require("png");require('caret');require('klaR');require('xlsx');
 require("ChemometricsWithR");require("gplots");require("kohonen");require("devtools");
 require("chemometrics");require("ggplot2");require("abind");require("plyr");require('dplyr');
-require("prospectr");require("DiscriMiner");require("baseline");require("knitr");
+require("prospectr");require("DiscriMiner");require("baseline");require("knitr")
 require("xtable");require("ptw");require("dtw");
 require('d3heatmap');require('randomForest');require('kernlab');require('ipred');
 require('extraTrees');require('evtree')#;require('shinyRGL');require('rgl')
