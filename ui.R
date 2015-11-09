@@ -554,10 +554,7 @@ shinyUI(navbarPage("rTLC",
                               tabsetPanel(
                                 tabPanel('R packages and Session Info',
                                           verbatimTextOutput('sessionInfo')
-                                          ),
-                                tabPanel('Hello',
-                                         p('world')
-                                         )
+                                          )
                               )
                             )
                             ),
