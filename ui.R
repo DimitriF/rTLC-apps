@@ -63,7 +63,8 @@ shinyUI(navbarPage("rTLC",
                                                  fileInput("checkpoint.1.upload","Rdata file to upload")
                                 ),
                                hr(),
-                               downloadButton("checkpoint.1.download",'Save Chromatograms')
+                               downloadButton("checkpoint.1.download",'Save Chromatograms'),
+                               downloadButton("checkpoint.1.download.xlsx",'Save in Excel')
                               ),
                               column(width=9,
                                      wellPanel(
