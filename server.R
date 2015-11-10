@@ -89,10 +89,12 @@ shinyServer(function(input, output,session) {
         fs <- c(fs,path)
         write.csv(data.mono.2()[,,channel[i]],file=path)
       }
-      path <- paste0('batch','.csv')
-      fs <- c(fs,path)
+      path = paste0('batch','.csv')
+      fs = c(fs,path)
       write.csv(dataX.mono.pre(),file=path)
-      zip(zipfile=file, files=fs)
+      tempFile <- tempfile(fileext = ".zip")
+      zip(zipfile=tempFile, files=fs)
+      file.rename(tempFile, file)
     },
     contentType = "application/zip"
   )
