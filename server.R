@@ -67,6 +67,18 @@ shinyServer(function(input, output,session) {
       save(list="data", file=con)
     }
     )
+  output$checkpoint.1.download.xlsx <- downloadHandler(
+    filename = "rTLC_checkpoint_1.xslx",
+    content = function(file) {
+      tempFile <- tempfile(fileext = ".xlsx")
+      write.xlsx(data.mono.2()[,,1],file=tempFile,sheetName = 'red',col.names=F,row.names =F,append=F)
+      write.xlsx(data.mono.2()[,,2],file=tempFile,sheetName = 'green',col.names=F,row.names =F,append=T)
+      write.xlsx(data.mono.2()[,,3],file=tempFile,sheetName = 'blue',col.names=F,row.names =F,append=T)
+      write.xlsx(data.mono.2()[,,4],file=tempFile,sheetName = 'grey',col.names=F,row.names =F,append=T)
+      write.xlsx(dataX.mono.pre(),file=tempFile,sheetName = 'batch',col.names=T,row.names =F,append=T)
+      file.rename(tempFile, file)
+    }
+  )
   output$checkpoint.1.download.zip <- downloadHandler(
     filename = "matlab_export.zip",
     content = function(file) {
