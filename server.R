@@ -98,6 +98,38 @@ shinyServer(function(input, output,session) {
     },
     contentType = "application/zip"
   )
+  output$checkpoint.1.download.red <- downloadHandler(
+    filename = "red_channel.csv",
+    content = function(file) {
+    tempFile <- tempfile(fileext = ".csv")
+    write.csv(data.mono.2()[,,1],file=file)
+    file.rename(tempFile, file)
+    }
+  )
+  output$checkpoint.1.download.green <- downloadHandler(
+    filename = "green_channel.csv",
+    content = function(file) {
+      tempFile <- tempfile(fileext = ".csv")
+      write.csv(data.mono.2()[,,2],file=file)
+      file.rename(tempFile, file)
+    }
+  )
+  output$checkpoint.1.download.blue <- downloadHandler(
+    filename = "blue_channel.csv",
+    content = function(file) {
+      tempFile <- tempfile(fileext = ".csv")
+      write.csv(data.mono.2()[,,3],file=file)
+      file.rename(tempFile, file)
+    }
+  )
+  output$checkpoint.1.download.grey <- downloadHandler(
+    filename = "grey_channel.csv",
+    content = function(file) {
+      tempFile <- tempfile(fileext = ".csv")
+      write.csv(data.mono.2()[,,4],file=file)
+      file.rename(tempFile, file)
+    }
+  )
     inFile.photo <- reactive({
         validate(
           need(input$filedemouse != "checkpoint", "Picture and dimension table not available, chromatograms already extracted.")
