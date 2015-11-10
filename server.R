@@ -101,33 +101,33 @@ shinyServer(function(input, output,session) {
   output$checkpoint.1.download.red <- downloadHandler(
     filename = "red_channel.csv",
     content = function(file) {
-    tempFile <- tempfile(fileext = ".csv")
+    # tempFile <- tempfile(fileext = ".csv")
     write.csv(data.mono.2()[,,1],file=file)
-    file.rename(tempFile, file)
+    # file.rename(tempFile, file)
     }
   )
   output$checkpoint.1.download.green <- downloadHandler(
     filename = "green_channel.csv",
     content = function(file) {
-      tempFile <- tempfile(fileext = ".csv")
+      # tempFile <- tempfile(fileext = ".csv")
       write.csv(data.mono.2()[,,2],file=file)
-      file.rename(tempFile, file)
+      # file.rename(tempFile, file)
     }
   )
   output$checkpoint.1.download.blue <- downloadHandler(
     filename = "blue_channel.csv",
     content = function(file) {
-      tempFile <- tempfile(fileext = ".csv")
+      # tempFile <- tempfile(fileext = ".csv")
       write.csv(data.mono.2()[,,3],file=file)
-      file.rename(tempFile, file)
+      # file.rename(tempFile, file)
     }
   )
   output$checkpoint.1.download.grey <- downloadHandler(
     filename = "grey_channel.csv",
     content = function(file) {
-      tempFile <- tempfile(fileext = ".csv")
+      # tempFile <- tempfile(fileext = ".csv")
       write.csv(data.mono.2()[,,4],file=file)
-      file.rename(tempFile, file)
+      # file.rename(tempFile, file)
     }
   )
     inFile.photo <- reactive({
@@ -680,15 +680,19 @@ output$plot.v.mono.bef.tot <- renderPlot({
   dist.bas<-input$dist.bas.mono
   Zf <- input$Zf.mono
   data <- data.mono.2()
-  par(mar=c(5,4,4,0), mfrow=c(4,1))
-  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),
-          y=t(as.matrix(data[n.band,,1])),type="l",main="Red channel",xlab=expression("R"['F']),ylab="intensity")
-  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),
-          y=t(as.matrix(data[n.band,,2])),type="l",main="Green channel",xlab=expression("R"['F']),ylab="intensity")
-  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),
-          y=t(as.matrix(data[n.band,,3])),type="l",main="Blue channel",xlab=expression("R"['F']),ylab="intensity")
-  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),
-          y=t(as.matrix(data[n.band,,4])),type="l",main="Grey channel",xlab=expression("R"['F']),ylab="intensity")
+  par(mar=c(5,4,4,1), mfrow=c(4,1))
+  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,1])),
+          lty=1,type="l",main="Red channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,2])),
+          lty=1,type="l",main="Green channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,3])),
+          lty=1,type="l",main="Blue channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,4])),
+          lty=1,type="l",main="Grey channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
 },height = 1200,width=800)
 
 output$plot.v.mono.aft.tot <- renderPlot({
@@ -700,15 +704,19 @@ output$plot.v.mono.aft.tot <- renderPlot({
   dist.bas<-input$dist.bas.mono
   Zf <- input$Zf.mono
   data <- data.mono.3()
-  par(mar=c(5,4,4,0), mfrow=c(4,1))
-  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),
-          y=t(as.matrix(data[n.band,,1])),type="l",main="Red channel",xlab=expression("R"['F']),ylab="intensity")
-  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),
-          y=t(as.matrix(data[n.band,,2])),type="l",main="Green channel",xlab=expression("R"['F']),ylab="intensity")
-  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),
-          y=t(as.matrix(data[n.band,,3])),type="l",main="Blue channel",xlab=expression("R"['F']),ylab="intensity")
-  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),
-          y=t(as.matrix(data[n.band,,4])),type="l",main="Grey channel",xlab=expression("R"['F']),ylab="intensity")
+  par(mar=c(5,4,4,1), mfrow=c(4,1))
+  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,1])),
+          lty=1,type="l",main="Red channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,2])),
+          lty=1,type="l",main="Green channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,3])),
+          lty=1,type="l",main="Blue channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,4])),
+          lty=1,type="l",main="Grey channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
 },height = 1200,width=800)
 output$image.comparaison.1 <- renderPlot({
   validate(
