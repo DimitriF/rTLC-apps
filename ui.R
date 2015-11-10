@@ -64,7 +64,7 @@ shinyUI(navbarPage("rTLC",
                                 ),
                                hr(),
                                downloadButton("checkpoint.1.download",'Save Chromatograms'),
-                               downloadButton("checkpoint.1.download.xlsx",'Save in Excel')
+                               downloadButton("checkpoint.1.download.zip",'Save zip file with csv')
                               ),
                               column(width=9,
                                      wellPanel(
