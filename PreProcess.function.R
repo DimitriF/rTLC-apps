@@ -2,7 +2,7 @@ f.preprocess <- function(data,preprocess.order,preprocess.option,training.data){
   for(i in preprocess.order){
     if(i == 'Warping'){
       data <- eval(parse(text=paste0(i,'(data,preprocess.option,training.data)')))
-      training.data <- eval(parse(text=paste0(i,'(data,preprocess.option,training.data)')))
+      training.data <- eval(parse(text=paste0(i,'(training.data,preprocess.option,training.data)')))
     }
     if(i == 'Standard.Normal.Variate'){
       data <- eval(parse(text=paste0(i,'(data)')))
@@ -116,10 +116,41 @@ Smoothing <- function(data,input){
 
 Warping <- function(data,input,training.data){
   input <- input$Warping
-  truc <- c(init.coef=input$ptw.init.coef,warp.type=input$ptw.warp.type,
-            optim.crit=input$ptw.optim.crit,trwdth=input$ptw.trwdth)
   if(input$warpmethod == "ptw"){
+    truc <- c(init.coef=input$ptw.init.coef,warp.type=input$ptw.warp.type,
+              optim.crit=input$ptw.optim.crit,trwdth=input$ptw.trwdth)
     data <- do.ptw(data=data,ref=input$ptw.warp.ref,training.data =training.data)
   }
+  if(input$warpmethod=='dtw'){
+    data <- do.dtw(data=data,ref=input$dtw.warp.ref,training.data =training.data,split=input$dtw.split)
+  }
+  return(data)
+}
+do.dtw <- function(data,ref,training.data,split=T){
+  if(split == T){
+    for(i in seq(4)){
+      for(j in seq(nrow(data))){
+        al <- dtw(data[j,,i],training.data[ref,,i])
+        truc <- redim(rbind(data[j,al$index1,i],training.data[ref,al$index2,i]),2,ncol(data))[1,]
+        data[j,,i] <- truc
+      }
+    }
+  }else{
+    for(j in seq(nrow(data))){
+      al <- dtw(data[j,,],training.data[ref,,])
+      truc <- redim(data[j,al$index1,],ncol(data),4)
+      data[j,,] <- truc
+    }
+  }
+  return(data)
+}
+do.ptw <- function(data,ref,training.data){
+  ref<-as.character(ref)
+  data[,,1]<-ptw(ref = training.data[ref,,1],data[,,1])$warped.sample
+  data[,,2]<-ptw(ref = training.data[ref,,2],data[,,2])$warped.sample
+  data[,,3]<-ptw(ref = training.data[ref,,3],data[,,3])$warped.sample
+  data[,,4]<-ptw(ref = training.data[ref,,4],data[,,4])$warped.sample
+  # data<-abind(data.a,data.b,data.c,data.d,along=3)
+  data[is.na(data)] <- 0
   return(data)
 }

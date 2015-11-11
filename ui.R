@@ -52,7 +52,7 @@ shinyUI(navbarPage("rTLC",
                                                  h4("Load"),
                                                  fileInput('fileX', 'Choice of the batch '),
                                                  selectizeInput("mono.Format.type","Select the format",choices=c("jpeg","png","tiff"),selected="jpeg"),
-                                                 fileInput('filemonop', 'Choice of the picture(s) file',multiple=T)
+                                                 fileInput('filemonop', 'Choice of the plate(s) file',multiple=T)
                                 ),
                                 conditionalPanel(condition = "input.filedemouse == 'QC'",
                                                  tags$hr(),
@@ -64,8 +64,9 @@ shinyUI(navbarPage("rTLC",
                                 ),
                                hr(),
                                downloadButton("checkpoint.1.download",'Save Chromatograms'),
+                               tags$hr(),
                                # downloadButton("checkpoint.1.download.xlsx",'Save excel file'),
-                               # downloadButton("checkpoint.1.download.zip",'Save zip file with csv'),
+                               downloadButton("checkpoint.1.download.zip",'Save zip file with csv'),
                                downloadButton("checkpoint.1.download.red",'CSV red channel'),
                                downloadButton("checkpoint.1.download.green",'CSV green channel'),
                                downloadButton("checkpoint.1.download.blue",'CSV blue channel'),
@@ -135,83 +136,95 @@ shinyUI(navbarPage("rTLC",
                               mainPanel(
                                 tabsetPanel(
                                   tabPanel("Preprocess Details",
-                                           h4("Smoothing"),
-                                           helpText(   a("Click Here for help with this smoothing feature",target="_blank",     
-                                                         href="http://www.inside-r.org/node/206625")
-                                           ),
-                                           numericInput("window.size","size of the windows",3,min=3,max=NA,step=2),
-                                           numericInput("poly.order","polynomial order",1),
-                                           numericInput("diff.order","differentiation order",0),
-                                           tags$hr(),
-                                           h4("Wrapping"),
-                                           selectizeInput("warpmethod","Warping method to use",choices=(c("ptw")),selected="ptw"),
-                                           conditionalPanel(condition="input.warpmethod=='ptw'",
-                                                            helpText(   a("Click Here for help with the PTW funtion",target="_blank",     
-                                                                          href="http://www.inside-r.org/packages/cran/ptw/docs/ptw")
-                                                            ),
-                                                            p("The best results I had was with respectively : ref=1, 'c(0,1,0)',individual,WCC,20 "),
-                                                            numericInput("ptw.warp.ref","id of the reference",1),
-                                                            textInput("ptw.init.coef","init.coef","c(0,1,0)"),
-                                                            selectizeInput("ptw.warp.type","warp.type",choices=c("individual", "global"),selected="global"),
-                                                            selectizeInput("ptw.optim.crit","optim.crit",choices=c("WCC", "RMS"),selected="WCC"),
-                                                            numericInput("ptw.trwdth","trwdth",20)
-                                           ),
-                                           h4("Standardisation"),
-                                           helpText(   a("Click Here for help with the SNV feature",target="_blank",     
-                                                         href="http://www.inside-r.org/packages/cran/prospectr/docs/standardNormalVariate")
-                                           ),
-                                           helpText(   a("Click Here for help with the Autoscale feature",target="_blank",     
-                                                         href="http://stat.ethz.ch/R-manual/R-devel/library/base/html/scale.html")
-                                           ),
-                                           tags$hr(),
-                                           h4("Baseline"),
-                                           helpText(   a("Click Here for help with the Baseline feature",target="_blank",     
-                                                         href="http://cran.r-project.org/web/packages/baseline/baseline.pdf")
-                                           ),
-                                           selectizeInput("baseline", "type of baseline", choices=c("als","fillPeaks","irls","lowpass","medianWindow","modpolyfit","peakDetection","rfbaseline","rollingBall"),select=NULL),
-                                           conditionalPanel(condition="input.baseline=='als'",
-                                                            numericInput("lambda.1","lambda : 2nd derivative constraint",5),
-                                                            numericInput("p","p : weighting of positive residuals",0.05),
-                                                            numericInput("maxit.1","maxit : maximum number of iterations",20)
-                                           ),
-                                           conditionalPanel(condition="input.baseline=='fillPeaks'",
-                                                            numericInput("lambda.2","lambda : 2nd derivative constraint for primary smoothing",6),
-                                                            numericInput("hwi","hwi : half width of local windows",100),
-                                                            numericInput("it","it : number of iterations in suppression loop",10),
-                                                            numericInput("int","int : number of buckets to divide spectra into",200)
-                                           ),
-                                           conditionalPanel(condition="input.baseline=='irls'",
-                                                            numericInput("lambda1","lambda1 : 2nd derivative constraint for primary smoothing",5),
-                                                            numericInput("lambda2","lambda2 : 2nd derivative constraint for secondary smoothing",9),
-                                                            numericInput("maxit.2","maxit : maximum number of iterations",200),
-                                                            numericInput("wi","wi : weighting of positive residuals",0.05)
-                                           ),
-                                           conditionalPanel(condition="input.baseline=='lowpass'",
-                                                            numericInput("steep","steep : steepness of filter curve",2),
-                                                            numericInput("half","half : half way point of filter curve",5)
-                                           ),
-                                           conditionalPanel(condition="input.baseline=='medianWindow'",
-                                                            numericInput("hwm","hwm : window half width for local medians",300),
-                                                            numericInput("hws","hws : window half width for local smoothing",5),
-                                                            checkboxInput("end","end : original endpoint handling",F)
-                                           ),
-                                           conditionalPanel(condition="input.baseline=='modpolyfit'",
-                                                            numericInput("degree","degree : degree of polynomial",4),
-                                                            numericInput("tol","tol : tolerance of difference between iterations",0.001),
-                                                            numericInput("rep","rep : maximum number of iterations",100)
-                                           ),
-                                           conditionalPanel(condition="input.baseline=='peakDetection'",
-                                                            numericInput("left","left : smallest window size for peak widths",30),
-                                                            numericInput("right","right : largest window size for peak widths",300),
-                                                            numericInput("lwin","lwin : Smallest window size for minimums and medians in peak removed spectra",50),
-                                                            numericInput("rwin","rwin : Largest window size for minimums and medians in peak removed spectra",50),
-                                                            numericInput("snminimum","snminimum : Minimum signal to noise ratio for accepting peaks",10)
-                                           ),
-                                           conditionalPanel(condition="input.baseline=='rollingBall'",
-                                                            numericInput("wm","wm : Width of local window for minimization/maximization",200),
-                                                            numericInput("ws","ws : Width of local window for smoothing",200)
-                                           )
-                                           
+                                           column(3,
+                                                  h4("Smoothing"),
+                                                  helpText(   a("Click Here for help with this smoothing feature",target="_blank",     
+                                                                href="http://www.inside-r.org/node/206625")
+                                                  ),
+                                                  numericInput("window.size","size of the windows",3,min=3,max=NA,step=2),
+                                                  numericInput("poly.order","polynomial order",1),
+                                                  numericInput("diff.order","differentiation order",0)
+                                                  ),
+                                           column(3,
+                                                  h4("Warping"),
+                                                  selectizeInput("warpmethod","Warping method to use",choices=(c("ptw",'dtw')),selected="ptw"),
+                                                  conditionalPanel(condition="input.warpmethod=='ptw'",
+                                                                   helpText(   a("Click Here for help with the PTW funtion",target="_blank",     
+                                                                                 href="http://www.inside-r.org/packages/cran/ptw/docs/ptw")
+                                                                   ),
+                                                                   #p("The best results I had was with respectively : ref=1, 'c(0,1,0)',individual,WCC,20 "),
+                                                                   numericInput("ptw.warp.ref","id of the reference",1)#,
+                                                                   #textInput("ptw.init.coef","init.coef","c(0,1,0)"),
+                                                                   #selectizeInput("ptw.warp.type","warp.type",choices=c("individual", "global"),selected="global"),
+                                                                   #selectizeInput("ptw.optim.crit","optim.crit",choices=c("WCC", "RMS"),selected="WCC"),
+                                                                   #numericInput("ptw.trwdth","trwdth",20)
+                                                  ),
+                                                  conditionalPanel(condition="input.warpmethod=='dtw'",
+                                                                   helpText(   a("Click Here for help with the DTW funtion",target="_blank",     
+                                                                                 href="http://www.inside-r.org/packages/cran/dtw/docs/dtw")
+                                                                   ),
+                                                                   numericInput("ptw.warp.ref","id of the reference",1),
+                                                                   checkboxInput('dtw.split','Do the alignment on the 4 channels separatly',F)
+                                                  )
+                                                  ),
+                                           column(3,
+                                                  h4("Standardisation"),
+                                                  helpText(   a("Click Here for help with the SNV feature",target="_blank",     
+                                                                href="http://www.inside-r.org/packages/cran/prospectr/docs/standardNormalVariate")
+                                                  ),
+                                                  helpText(   a("Click Here for help with the Autoscale feature",target="_blank",     
+                                                                href="http://stat.ethz.ch/R-manual/R-devel/library/base/html/scale.html")
+                                                  )
+                                                  ),
+                                           column(3,
+                                                  h4("Baseline"),
+                                                  helpText(   a("Click Here for help with the Baseline feature",target="_blank",     
+                                                                href="http://cran.r-project.org/web/packages/baseline/baseline.pdf")
+                                                  ),
+                                                  selectizeInput("baseline", "type of baseline", choices=c("als","fillPeaks","irls","lowpass","medianWindow","modpolyfit","peakDetection","rfbaseline","rollingBall"),select=NULL),
+                                                  conditionalPanel(condition="input.baseline=='als'",
+                                                                   numericInput("lambda.1","lambda : 2nd derivative constraint",5),
+                                                                   numericInput("p","p : weighting of positive residuals",0.05),
+                                                                   numericInput("maxit.1","maxit : maximum number of iterations",20)
+                                                  ),
+                                                  conditionalPanel(condition="input.baseline=='fillPeaks'",
+                                                                   numericInput("lambda.2","lambda : 2nd derivative constraint for primary smoothing",6),
+                                                                   numericInput("hwi","hwi : half width of local windows",100),
+                                                                   numericInput("it","it : number of iterations in suppression loop",10),
+                                                                   numericInput("int","int : number of buckets to divide spectra into",200)
+                                                  ),
+                                                  conditionalPanel(condition="input.baseline=='irls'",
+                                                                   numericInput("lambda1","lambda1 : 2nd derivative constraint for primary smoothing",5),
+                                                                   numericInput("lambda2","lambda2 : 2nd derivative constraint for secondary smoothing",9),
+                                                                   numericInput("maxit.2","maxit : maximum number of iterations",200),
+                                                                   numericInput("wi","wi : weighting of positive residuals",0.05)
+                                                  ),
+                                                  conditionalPanel(condition="input.baseline=='lowpass'",
+                                                                   numericInput("steep","steep : steepness of filter curve",2),
+                                                                   numericInput("half","half : half way point of filter curve",5)
+                                                  ),
+                                                  conditionalPanel(condition="input.baseline=='medianWindow'",
+                                                                   numericInput("hwm","hwm : window half width for local medians",300),
+                                                                   numericInput("hws","hws : window half width for local smoothing",5),
+                                                                   checkboxInput("end","end : original endpoint handling",F)
+                                                  ),
+                                                  conditionalPanel(condition="input.baseline=='modpolyfit'",
+                                                                   numericInput("degree","degree : degree of polynomial",4),
+                                                                   numericInput("tol","tol : tolerance of difference between iterations",0.001),
+                                                                   numericInput("rep","rep : maximum number of iterations",100)
+                                                  ),
+                                                  conditionalPanel(condition="input.baseline=='peakDetection'",
+                                                                   numericInput("left","left : smallest window size for peak widths",30),
+                                                                   numericInput("right","right : largest window size for peak widths",300),
+                                                                   numericInput("lwin","lwin : Smallest window size for minimums and medians in peak removed spectra",50),
+                                                                   numericInput("rwin","rwin : Largest window size for minimums and medians in peak removed spectra",50),
+                                                                   numericInput("snminimum","snminimum : Minimum signal to noise ratio for accepting peaks",10)
+                                                  ),
+                                                  conditionalPanel(condition="input.baseline=='rollingBall'",
+                                                                   numericInput("wm","wm : Width of local window for minimization/maximization",200),
+                                                                   numericInput("ws","ws : Width of local window for smoothing",200)
+                                                  )
+                                                  )
                                            ),
                                   tabPanel("Chromatograms",
                                            uiOutput('choice.band.mono.aft.1'),

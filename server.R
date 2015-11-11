@@ -87,7 +87,7 @@ shinyServer(function(input, output,session) {
       for(i in names(channel)){
         path <- paste0(i,'.csv')
         fs <- c(fs,path)
-        write.csv(data.mono.2()[,,channel[i]],file=path)
+        write.csv(data.mono.2()[,,channel[i]],file=path,row.names = F,col.names = F,sep=';')
       }
       path = paste0('batch','.csv')
       fs = c(fs,path)
@@ -102,7 +102,7 @@ shinyServer(function(input, output,session) {
     filename = "red_channel.csv",
     content = function(file) {
     # tempFile <- tempfile(fileext = ".csv")
-    write.csv(data.mono.2()[,,1],file=file)
+    write.csv(data.mono.2()[,,1],file=file,row.names=F,col.names = F,sep=';')
     # file.rename(tempFile, file)
     }
   )
@@ -110,7 +110,7 @@ shinyServer(function(input, output,session) {
     filename = "green_channel.csv",
     content = function(file) {
       # tempFile <- tempfile(fileext = ".csv")
-      write.csv(data.mono.2()[,,2],file=file)
+      write.csv(data.mono.2()[,,2],file=file,row.names=F,col.names = F,sep=';')
       # file.rename(tempFile, file)
     }
   )
@@ -118,7 +118,7 @@ shinyServer(function(input, output,session) {
     filename = "blue_channel.csv",
     content = function(file) {
       # tempFile <- tempfile(fileext = ".csv")
-      write.csv(data.mono.2()[,,3],file=file)
+      write.csv(data.mono.2()[,,3],file=file,row.names=F,col.names = F,sep=';')
       # file.rename(tempFile, file)
     }
   )
@@ -126,7 +126,7 @@ shinyServer(function(input, output,session) {
     filename = "grey_channel.csv",
     content = function(file) {
       # tempFile <- tempfile(fileext = ".csv")
-      write.csv(data.mono.2()[,,4],file=file)
+      write.csv(data.mono.2()[,,4],file=file,row.names=F,col.names = F,sep=';')
       # file.rename(tempFile, file)
     }
   )
@@ -382,7 +382,7 @@ shinyServer(function(input, output,session) {
   
   output$select.image.redim.mono<-renderUI({
     truc <- paste(seq(nrow(inFile.photo())),inFile.photo()$name,sep="  -  ")
-    selectizeInput("select.image.redim.mono","Choice of the picture for chromatograms extraction with the dimension table",choices=truc)
+    selectizeInput("select.image.redim.mono","Choice of the plate for chromatograms extraction with the dimension table",choices=truc)
   })
   output$image.redim.mono <- renderImage({
     n.pic<-as.numeric(substr(input$select.image.redim.mono,1,3))
@@ -403,12 +403,12 @@ shinyServer(function(input, output,session) {
     nbr.band<-round((largeur-2*dist.gauche)/(band+ecart))
     
     outfile <- tempfile(fileext='.png')
-    png(outfile, width=1000, height=500)
+    png(outfile, width=600, height=300)
     par(mar=c(5,4,0,0))
     plot(c(0,largeur),c(0,input$hauteur.mono), type='n',ylab="",xlab="",bty='n')
     rasterImage(f.read.image(as.character(inFile[n.pic,4]),native=T,input$mono.Format.type,height=0),0 , 0, largeur, input$hauteur.mono)
     for(i in seq(nbr.band)){
-      text(x=(dist.gauche+tolerance+(i-1)*(band+ecart)),y=9,labels=i,col="red",cex=2)
+      text(x=(dist.gauche+tolerance+(i-1)*(band+ecart)),y=input$hauteur.mono*0.9,labels=i,col="red",cex=1)
       abline(v=dist.gauche+tolerance+(i-1)*(band+ecart),col="red")
       abline(v=dist.gauche-tolerance+band+(i-1)*(band+ecart),col="green")
       abline(h=input$Zf.mono,col='white')
@@ -418,8 +418,8 @@ shinyServer(function(input, output,session) {
     dev.off()
     list(src = outfile,
          contentType = 'image/png',
-         width = 600,
-         height = 300,
+#          width = 600,
+#          height = 300,
          alt = "This is alternate text")
   }, deleteFile = TRUE)
   
@@ -503,6 +503,12 @@ Train.partition <- reactive({
                         ptw.optim.crit=input$ptw.optim.crit,
                         ptw.trwdth=input$ptw.trwdth)
       }
+      if(input$warpmethod == 'dtw'){
+        Warping <- list(warpmethod = input$warpmethod,
+                        dtw.warp.ref = input$ptw.warp.ref,
+                        dtw.split = input$dtw.split
+        )
+      }
 #       Center <- list(colMeans(data[Train.partition(),,1]),colMeans(data[Train.partition(),,2]),colMeans(data[Train.partition(),,3]),colMeans(data[Train.partition(),,4]))
 #       Scale <- list(apply(data[Train.partition(),,1],2,sd),apply(data[Train.partition(),,2],2,sd),apply(data[Train.partition(),,3],2,sd),apply(data[Train.partition(),,4],2,sd))
       if(input$baseline == "als"){Baseline <- list(method=input$baseline,lambda.1=input$lambda.1,p=input$p,maxit.1=input$maxit.1)}
@@ -527,9 +533,9 @@ Train.partition <- reactive({
         need(input$window.size > input$poly.order, "The window size must be greater than the polynomial order"),
         need(input$poly.order > input$diff.order, "The polynomial order must be greater than the differential order")
       )
-      validate(
-        need(!Not.Use()[input$ptw.warp.ref], "the reference id for the warping is not in the batch")
-      )
+#       validate(
+#         need(!Not.Use()[input$ptw.warp.ref], "the reference id for the warping is not in the batch")
+#       )
       validate(
         need(Train.partition()[input$ptw.warp.ref], "the reference id for the warping is not in the training set")
       )
@@ -750,8 +756,8 @@ pca.plot.1<-reactive({
   data<-model.pca()
 #   label.color <- paste(input$col.pca,collapse=', ')
 #   label.color <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'grey',label.color))))
-  xlabel<-paste(round(data$var[as.numeric(substr(input$PCA.comp.a,5,5))]/data$totalvar*100,2),"%")
-  ylabel<-paste(round(data$var[as.numeric(substr(input$PCA.comp.b,5,5))]/data$totalvar*100,2),"%")
+  xlabel<-paste(input$PCA.comp.a,': ',round(data$var[as.numeric(substr(input$PCA.comp.a,5,5))]/data$totalvar*100,2),"%")
+  ylabel<-paste(input$PCA.comp.b,': ',round(data$var[as.numeric(substr(input$PCA.comp.b,5,5))]/data$totalvar*100,2),"%")
   data<-scores(data,npc=10)
   colnames(data)<-c("comp1","comp2","comp3","comp4","comp5","comp6","comp7","comp8","comp9","comp10")
   data<-data[,c(input$PCA.comp.a,input$PCA.comp.b)]

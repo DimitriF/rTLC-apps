@@ -194,16 +194,6 @@ f.plot.array<-function(data,id,label,hauteur,Zf,dist.bas,reconstruct=T,xlim=c(-d
   mtext(side = 2, "intensity", line = 2)
 }
 
-do.ptw <- function(data,ref,training.data){
-  ref<-as.character(ref)
-  data[,,1]<-ptw(ref = training.data[ref,,1],data[,,1])$warped.sample
-  data[,,2]<-ptw(ref = training.data[ref,,2],data[,,2])$warped.sample
-  data[,,3]<-ptw(ref = training.data[ref,,3],data[,,3])$warped.sample
-  data[,,4]<-ptw(ref = training.data[ref,,4],data[,,4])$warped.sample
-  # data<-abind(data.a,data.b,data.c,data.d,along=3)
-  data[is.na(data)] <- 0
-  return(data)
-}
 do.VPdtw <- function(data,ref,dataX,maxshift=50,Reference.type=c("random","median","mean","trimmed")){
   ref<-as.character(ref)
   if(ref != "0"){
