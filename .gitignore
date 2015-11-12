@@ -1,5 +1,5 @@
 /figure
 /rsconnect
-.csv
-.tex
-.log
+*.csv
+*.tex
+*.log
