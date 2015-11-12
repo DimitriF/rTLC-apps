@@ -356,7 +356,12 @@ shinyUI(navbarPage("rTLC",
                                                       numericInput("quantile.outlier.pca.1","quantile to use for the cutoff",0.975),
                                                       plotOutput("quantile.outlier.pca.1"),
                                                       verbatimTextOutput("quantile.outlier.pca.2")
-                                             )
+                                             ),
+                                              tabPanel('score and loading together',
+                                                       p('Note that for this graphic, the variable selection is by passed, could evolve in the futur though'),
+                                                       uiOutput('pca.plot.score.loading.title'),
+                                                       plotOutput('pca.plot.score.loading',height='800px')
+                                                       )
                                            )
                                          )
                                        )
@@ -570,6 +575,7 @@ shinyUI(navbarPage("rTLC",
                                    ),
                             column(2,h4('Exploratory Statistics'),
                                    checkboxInput("mono.knitr.pca.plot", "Print the pca plot", FALSE),
+                                   checkboxInput('mono.knitr.pca.score.loading','Print the plot with score and loadings',F),
                                    checkboxInput("mono.knitr.cluster.plot", "Print the cluster plot", FALSE),
                                    checkboxInput("mono.knitr.heatmap.plot", "Print the heatmap plot", FALSE)
                                    ),

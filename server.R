@@ -884,6 +884,38 @@ output$pca.loading.local.maxima <- renderPrint({
   print(RF[pick.peaks(data, input$pca.loading.local.maxima.span)])
 })
 
+output$pca.plot.score.loading <- renderPlot({
+  dataX <- dataX.mono.pre()[,input$col.plot.pca]
+  par(xpd=T)
+  par(mfrow=c(4,3),mar=c(5,4,4,6),oma = c(0, 0, 3, 0))
+  hauteur<-input$hauteur.mono
+  dist.bas<-input$dist.bas.mono
+  Zf <- input$Zf.mono
+  maxi <- (hauteur-dist.bas)/(Zf-dist.bas)
+  mini <- -dist.bas/(Zf-dist.bas)
+  color <- c('red','green','blue','grey')
+  for(i in seq(4)){
+    data <- data.mono.3()[,,i]
+    model <- PCA(data)
+    scoreplot(model,col=factor(dataX),main=paste0(color[i],' channel'))
+    legend("topright", inset=c(-0.5,0),legend=unique(factor(dataX)),pch=1,col=unique(factor(dataX)))
+    data <- loadings.PCA(model)[,1]
+    RF = seq(maxi,mini,length.out=length(data))
+    plot(x=RF, xaxt = "n",
+         y=as.matrix(data),type="l",main=paste0("Loading plot: PC1: ",round(model$var[1]/model$totalvar*100,1),'%'),xlab=expression("R"['F']),ylab="intensity")
+    axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
+    data <- loadings.PCA(model)[,2]
+    RF = seq(maxi,mini,length.out=length(data))
+    plot(x=RF, xaxt = "n",
+         y=as.matrix(data),type="l",main=paste0("Loading plot: PC2: ",round(model$var[2]/model$totalvar*100,1),'%'),xlab=expression("R"['F']),ylab="intensity")
+    axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
+  }
+  mtext(input$pca.plot.score.loading.title, outer = TRUE, cex = 1.5)
+})
+output$pca.plot.score.loading.title <- renderUI({
+  textInput('pca.plot.score.loading.title','Title of the plot',paste0('Preprocess: \n',paste0(input$Preprocess.order,collapse='; ')))
+})
+
 # output$myWebGL.1 <- renderWebGL({ ## NOT WORKING
 #   data<-model.pca()
 #   data<-scores(data,npc=3)
