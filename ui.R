@@ -22,17 +22,12 @@ require("ChemometricsWithR");require("gplots");require("kohonen");require("devto
 require("chemometrics");require("ggplot2");require("abind");require("plyr");require('dplyr');
 require("prospectr");require("DiscriMiner");require("baseline");require("knitr");
 require("xtable");require("ptw");require("dtw");
-require('d3heatmap');require('randomForest');require('kernlab');require('ipred');
+require('randomForest');require('kernlab');require('ipred');
 require('extraTrees');require('evtree')#;require('shinyRGL');require('rgl')
-require('shinyAce');require('shinydashboard');
 
-caret.table <- cbind(
-  llply(getModelInfo(),function(l){l$label}),
-  llply(getModelInfo(),function(l){l$library}),
-  llply(getModelInfo(),function(l){l$prob}),
-  llply(getModelInfo(),function(l){l$type})
-)
-Train.model.algo.choice <- caret.table[,1]
+require('shinyAce');require('shinydashboard');require('d3heatmap');
+
+
 
 shinyUI(navbarPage("rTLC",
                    tabPanel("Data input",
@@ -66,11 +61,7 @@ shinyUI(navbarPage("rTLC",
                                downloadButton("checkpoint.1.download",'Save Chromatograms'),
                                tags$hr(),
                                # downloadButton("checkpoint.1.download.xlsx",'Save excel file'),
-                               downloadButton("checkpoint.1.download.zip",'Save zip file with csv'),
-                               downloadButton("checkpoint.1.download.red",'CSV red channel'),
-                               downloadButton("checkpoint.1.download.green",'CSV green channel'),
-                               downloadButton("checkpoint.1.download.blue",'CSV blue channel'),
-                               downloadButton("checkpoint.1.download.grey",'CSV grey channel')
+                               downloadButton("checkpoint.1.download.zip",'Save zip file with csv')
                               ),
                               column(width=9,
                                      wellPanel(
@@ -327,8 +318,8 @@ shinyUI(navbarPage("rTLC",
                                            # checkboxGroupInput("col.pca", "Channel to select for the PCA", choices=c("red"=1,"green"=2,"blue"=3,"grey"=4),select=seq(4)),
                                            tags$hr(),
                                            h4("Other options"),
-                                           selectizeInput('PCA.comp.a', '1st componant for the plot', choice=c("comp1","comp2","comp3","comp4","comp5","comp6","comp7","comp8","comp9","comp10"),select="comp1"),
-                                           selectizeInput('PCA.comp.b', '2nd componant for the plot', choice=c("comp1","comp2","comp3","comp4","comp5","comp6","comp7","comp8","comp9","comp10"),select="comp2"),
+                                           selectizeInput('PCA.comp.a', '1st componant for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC1"),
+                                           selectizeInput('PCA.comp.b', '2nd componant for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC2"),
                                            checkboxInput('pca.ellipse','Plot the ellipse according to the color',F),
                                            tableOutput("Table.dim.just.pca.label")
                                          ),
@@ -497,8 +488,8 @@ shinyUI(navbarPage("rTLC",
                             sidebarLayout(
                               sidebarPanel(width = 3,
                                            sliderInput('Train.partition','Part of data to train with (the preprocess will be rerun if changed)',min=0,max=1,value = 1),
-                                           selectizeInput("Train.model.algo",'Choice of the algorythm',choices= names(Train.model.algo.choice),selected='rf'),
-                                           radioButtons('Train.problem',NULL,choices=c('classification','regression (don\'t work)'),selected='classification'),
+                                           uiOutput('Train.model.algo'),
+                                           radioButtons('Trainproblem','Type',choices=c('classification 2 class','classification multiclass','regression'),selected='classification 2 class'),
                                            uiOutput("Train.column"),
                                            # checkboxGroupInput("col.Pred","Choice of the channel(s)",choices=c("red"=1,"green"=2,"blue"=3,"grey"=4),select=seq(4)),
                                            hr(),
@@ -511,12 +502,25 @@ shinyUI(navbarPage("rTLC",
                                   tabPanel("Tunning Options",
                                            fluidRow(
                                              box(title='Generale Options',width=3,collapsible = F,
-                                                 # selectizeInput("Train.model.metric","Choice of the metric for the tuning",choices=c('ROC' = 'ROC','Sensibility' = 'Sens','Specificity'='Spec'),selected='Specificity'),
-                                                 numericInput('Train.tunning.length','Tuning length',10),
-                                                 numericInput('Train.tunning.CV','cross validation k-fold',5),
-                                                 numericInput('Train.tunning.repeat','number of repeat',1)
+                                                 selectizeInput('Train.control.method','Validation method for the tunning',
+                                                                choices=c('boot', 'repeatedcv', 'LOOCV'),
+                                                                selected='repeatedcv'),
+                                                 uiOutput('Train.metric'),
+#                                                  conditionalPanel(condition="input.Trainproblem=='classification 2 class'",
+#                                                                   selectizeInput('Train.metric','what summary metric will be used to select the optimal mode',choices=c('Accuracy','Kappa','Specificity','Sensitivity','Pos_Pred_Value','Neg_Pred_Value','Detection_Rate','Balanced_Accuracy'),selected='Accuracy'),
+#                                                                   uiOutput('Train.metric.positive.class')
+#                                                                   ),
+#                                                  conditionalPanel(condition="input.Trainproblem=='classification multiclass'",
+#                                                                   selectizeInput('Train.metric','what summary metric will be used to select the optimal mode',choices=c('Accuracy','Kappa','Mean_Sensitivity','Mean_Specificity','Mean_Pos_Pred_Value','Mean_Neg_Pred_Value','Mean_Detection_Rate','Mean_Balanced_Accuracy'),selected='Accuracy')
+#                                                  ),
+#                                                  conditionalPanel(condition="input.Trainproblem=='regression'",
+#                                                                   selectizeInput('Train.metric','what summary metric will be used to select the optimal mode',choices=c('RMSE','Rsquared'),selected='RMSE')
+#                                                  ),
+                                                 numericInput('Train.tunning.CV','Either the number of folds or number of resampling iterations',5),
+                                                 numericInput('Train.tunning.repeat','For repeated k-fold cross-validation only: the number of complete sets of folds to compute',1)
                                                  ),
                                              box(title='Grid',width=9,collapsible = F,
+                                                 numericInput('Train.tunning.length','Tuning length',10),
                                                  tableOutput("Train.model.grid.edit")
                                              )
                                            )
@@ -534,6 +538,9 @@ shinyUI(navbarPage("rTLC",
                                            ),
                                   tabPanel('Model Summary',
                                            verbatimTextOutput('Train.validation')
+                                           ),
+                                  tabPanel('Tunning Curve',
+                                           plotOutput('Train.tunning.plot')
                                            ),
                                   tabPanel("Editor.pred",
                                            aceEditor("DPEeditorpred","model <- Train.model() \nInd <- Train.Ind()\nDep <- Train.Dep()",mode="r")

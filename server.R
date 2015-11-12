@@ -87,7 +87,7 @@ shinyServer(function(input, output,session) {
       for(i in names(channel)){
         path <- paste0(i,'.csv')
         fs <- c(fs,path)
-        write.csv(data.mono.2()[,,channel[i]],file=path,row.names = F,col.names = F,sep=';')
+        write.csv(data.mono.2()[,dim(data.mono.2())[2]:1,channel[i]],file=path,row.names = F,col.names = F,sep=';')
       }
       path = paste0('batch','.csv')
       fs = c(fs,path)
@@ -310,7 +310,7 @@ shinyServer(function(input, output,session) {
                        Value = c('redim.height','hauteur.mono','Zf.mono','dist.bas.mono'),
                        Default = Default
     )
-    if(input$filedemouse == 'QC' | input$filedemouse == 'checkpoint'){
+    if(input$filedemouse == 'QC'){
       data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='number' readonly='readonly' value='",data$Default,"'>")
     }else{
       data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='number'  value='",data$Default,"'>")
@@ -382,7 +382,7 @@ shinyServer(function(input, output,session) {
   
   output$select.image.redim.mono<-renderUI({
     truc <- paste(seq(nrow(inFile.photo())),inFile.photo()$name,sep="  -  ")
-    selectizeInput("select.image.redim.mono","Choice of the plate for chromatograms extraction with the dimension table",choices=truc)
+    selectizeInput("select.image.redim.mono","Plate choice",choices=truc)
   })
   output$image.redim.mono <- renderImage({
     n.pic<-as.numeric(substr(input$select.image.redim.mono,1,3))
@@ -756,14 +756,14 @@ pca.plot.1<-reactive({
   data<-model.pca()
 #   label.color <- paste(input$col.pca,collapse=', ')
 #   label.color <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'grey',label.color))))
-  xlabel<-paste(input$PCA.comp.a,': ',round(data$var[as.numeric(substr(input$PCA.comp.a,5,5))]/data$totalvar*100,2),"%")
-  ylabel<-paste(input$PCA.comp.b,': ',round(data$var[as.numeric(substr(input$PCA.comp.b,5,5))]/data$totalvar*100,2),"%")
+  xlabel<-paste0(input$PCA.comp.a,' (',round(data$var[as.numeric(substr(input$PCA.comp.a,3,3))]/data$totalvar*100,2),"%)")
+  ylabel<-paste0(input$PCA.comp.b,' (',round(data$var[as.numeric(substr(input$PCA.comp.b,3,3))]/data$totalvar*100,2),"%)")
   data<-scores(data,npc=10)
-  colnames(data)<-c("comp1","comp2","comp3","comp4","comp5","comp6","comp7","comp8","comp9","comp10")
+  colnames(data)<-c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")
   data<-data[,c(input$PCA.comp.a,input$PCA.comp.b)]
-  colnames(data)<-c("comp1","comp2")
+  colnames(data)<-c("PC1","PC2")
   data<-cbind(dataX.mono.pre(),data)
-  plot<-ggplot()+geom_point(data=data,aes(x=comp1,y=comp2),size=as.numeric(input$cex.pca))+ 
+  plot<-ggplot()+geom_point(data=data,aes(x=PC1,y=PC2),size=as.numeric(input$cex.pca))+ 
     labs(x=xlabel, y=ylabel)
   if(input$shape.plot.pca != "None"){
     validate(
@@ -772,18 +772,18 @@ pca.plot.1<-reactive({
   }
   if(input$shape.plot.pca != "None" & input$col.plot.pca == "None"){   
     data$Shape<-data[,input$shape.plot.pca]
-    plot<-ggplot()+geom_point(data=data,aes(x=comp1,y=comp2,shape=Shape),size=as.numeric(input$cex.pca))+ 
+    plot<-ggplot()+geom_point(data=data,aes(x=PC1,y=PC2,shape=Shape),size=as.numeric(input$cex.pca))+ 
       labs(x=xlabel, y=ylabel)
   }
   if(input$col.plot.pca != "None" & input$shape.plot.pca == "None"){
     data$Color<-data[,input$col.plot.pca]
-    plot<-ggplot()+geom_point(data=data,aes(x=comp1,y=comp2,col=Color),size=as.numeric(input$cex.pca))+ 
+    plot<-ggplot()+geom_point(data=data,aes(x=PC1,y=PC2,col=Color),size=as.numeric(input$cex.pca))+ 
       labs(x=xlabel, y=ylabel)
   }   
   if(input$col.plot.pca != "None" & input$shape.plot.pca != "None"){
     data$Color<-data[,input$col.plot.pca]
     data$Shape<-data[,input$shape.plot.pca]
-    plot<-ggplot()+geom_point(data=data,aes(x=comp1,y=comp2,col=Color,shape=Shape),size=as.numeric(input$cex.pca))+ 
+    plot<-ggplot()+geom_point(data=data,aes(x=PC1,y=PC2,col=Color,shape=Shape),size=as.numeric(input$cex.pca))+ 
       labs(x=xlabel, y=ylabel)
   }   
 #   if(input$plotlyPCA==T){
@@ -792,9 +792,9 @@ pca.plot.1<-reactive({
 #   }
   if(input$label.plot.pca != "None"){
     data$Label<-data[,input$label.plot.pca]
-    plot<-plot+geom_text(data=data,aes(x=comp1,y=comp2,label=Label),hjust=as.numeric(input$hjust.pca),vjust=as.numeric(input$vjust.pca))
+    plot<-plot+geom_text(data=data,aes(x=PC1,y=PC2,label=Label),hjust=as.numeric(input$hjust.pca),vjust=as.numeric(input$vjust.pca))
   }     
-  if(input$pca.ellipse == T){plot <- plot+ stat_ellipse(data=data,aes(x=comp1,y=comp2,col=Color))}
+  if(input$pca.ellipse == T){plot <- plot+ stat_ellipse(data=data,aes(x=PC1,y=PC2,col=Color))}
   return(plot+ggtitle(input$pca.plot.1.title))
 })
 output$pca.plot.1<-renderPlot({
@@ -811,7 +811,7 @@ output$pca.summary.1<-renderPrint({
 output$pca.table.1<-renderDataTable({ 
   data<-model.pca()
   data<-scores(data,npc=4)
-  colnames(data)<-c("comp1","comp2","comp3","comp4")
+  colnames(data)<-c("PC1","PC2","PC3","PC4")
   cbind(dataX.mono.pre(),data) 
 })
 ## render a selectize input with the name of the columns as choice for the pca
@@ -877,13 +877,13 @@ output$pca.loading.local.maxima <- renderPrint({
 # output$myWebGL.1 <- renderWebGL({ ## NOT WORKING
 #   data<-model.pca()
 #   data<-scores(data,npc=3)
-#   colnames(data)<-c("comp1","comp2","comp3")
+#   colnames(data)<-c("PC1","PC2","PC3")
 #   data<-cbind(dataX.mono.pre(),data)
 #   # dataX <- dataX.mono.pre()
 #   data$Color <- data$Drug
-#   text3d(data$comp1, data$comp2,data$comp3,text=data$id,col=rainbow(length(levels(factor(data$Color))))[factor(data$Color)])
+#   text3d(data$PC1, data$PC2,data$PC3,text=data$id,col=rainbow(length(levels(factor(data$Color))))[factor(data$Color)])
 #   axes3d()
-#   title3d(xlab="comp1",ylab="comp2",zlab="comp3")
+#   title3d(xlab="PC1",ylab="PC2",zlab="PC3")
 # })
 
 
@@ -1002,7 +1002,7 @@ output$DPEprint <- renderPrint({
 ##### Train : Predictive Statistics ########
 
 output$Train.column<-renderUI({
-  radioButtons("Train.column","Choice of the variable",choices=colnames(dataX.mono.pre()))
+  radioButtons("Train.column","Choice of the variable",choices=colnames(dataX.mono.pre())[2:length(colnames(dataX.mono.pre()))])
 })
 output$Train.model.algo.info <- renderPrint({
   getModelInfo()[input$Train.model.algo]
@@ -1022,7 +1022,7 @@ Train.Ind <- reactive({
 })
 Train.Dep <- reactive({
   data <- dataX.mono.pre()[,input$Train.column]
-  if(input$Train.problem == 'classification'){
+  if(input$Trainproblem == 'classification 2 class' | input$Trainproblem == 'classification multiclass'){
     data <- gsub(' ','_',data)
     data <- as.factor(data)
   }else{
@@ -1033,6 +1033,35 @@ Train.Dep <- reactive({
   }
   data
 })
+output$Train.metric.positive.class <- renderUI({
+  h5(paste0('Positive class will be: ',dataX.mono.pre()[1,input$Train.column]))
+  # selectizeInput('Train.metric.positive.class','Class to choose as the positive class',choices=unique(dataX.mono.pre()[,input$Train.column]))
+})
+output$Train.metric <- renderUI({
+  if(input$Trainproblem == 'classification 2 class'){
+    truc <- c('Accuracy','Kappa','Specificity','Sensitivity','Pos_Pred_Value','Neg_Pred_Value','Detection_Rate','Balanced_Accuracy')
+  }
+  if(input$Trainproblem == 'classification multiclass'){
+    truc <- c('Accuracy','Kappa','Mean_Sensitivity','Mean_Specificity','Mean_Pos_Pred_Value','Mean_Neg_Pred_Value','Mean_Detection_Rate','Mean_Balanced_Accuracy')
+  }
+  if(input$Trainproblem == 'regression'){
+    truc <- c('RMSE','Rsquared')
+  }
+  selectizeInput('Train.metric','what summary metric will be used to select the optimal mode',choices=truc)
+})
+output$Train.model.algo <- renderUI({
+  caret.table <- cbind(
+    llply(getModelInfo(),function(l){l$label}),
+    llply(getModelInfo(),function(l){l$library}),
+    llply(getModelInfo(),function(l){l$prob}),
+    llply(getModelInfo(),function(l){l$type})
+  )
+  Train.model.algo.choice <- names(caret.table[,1])
+  names(Train.model.algo.choice) <- caret.table[,1]
+  Train.model.algo.choice <- Train.model.algo.choice[names(caret.table[,1]) %in% c('rf','pls','lda','svmLinear2','svmPoly','rpart','pcr')]
+  selectizeInput("Train.model.algo",'Choice of the algorythm',choices= Train.model.algo.choice,selected='rf')
+})
+
 Train.model.grid.pre <- reactive({
   grid <- getModelInfo(model = input$Train.model.algo)[[input$Train.model.algo]]$grid
   grid(Train.Ind(),Train.Dep(),len=input$Train.tunning.length)
@@ -1069,14 +1098,35 @@ Train.model <- eventReactive(input$Train.go,{
     data <- data.frame(Ind = Train.Ind(), Dep = Train.Dep())
     training <- data[Train.partition(),]
     set.seed(1)
-    control <- trainControl(method = 'repeatedcv',
-                            number=input$Train.tunning.CV,
-                            repeats=input$Train.tunning.repeat,
-                            allowParallel=T,verboseIter=T) # add ,classProbs = T for score but must add classmat2classvec and avoid regression
+#     eval(parse(text=paste0('control <- trainControl(method = input$Train.control.method,
+#                             number=input$Train.tunning.CV,
+#                             repeats=input$Train.tunning.repeat,
+#                             savePredictions = "final",
+#                             summaryFunction = ',input$Traincontrolsummaryfunction,',allowParallel=T,verboseIter=T)
+#                            '
+#     ))) #
+    if(input$Trainproblem == 'classification 2 class' | input$Trainproblem == 'classification multiclass'){
+      control <- trainControl(method = input$Train.control.method,
+                              number=input$Train.tunning.CV,
+                              repeats=input$Train.tunning.repeat,
+                              savePredictions = "final",
+                              summaryFunction = multiClassSummary,
+                              allowParallel=T,verboseIter=T)
+    }
+    if(input$Trainproblem == 'regression'){
+      control <- trainControl(method = input$Train.control.method,
+                              number=input$Train.tunning.CV,
+                              repeats=input$Train.tunning.repeat,
+                              savePredictions = "final",
+                              summaryFunction = defaultSummary,
+                              allowParallel=T,verboseIter=T)
+    }
+    
     set.seed(1)
     model <- train(Dep ~. , data = training,
                    method=input$Train.model.algo,
                    tuneGrid = Train.model.grid.edit(),
+                   metric = input$Train.metric,
                    trControl = control
     )
   })
@@ -1100,6 +1150,9 @@ output$Train.valid.table <- renderTable({
 output$Train.valid.print <- renderPrint({
   confusionMatrix(Train.Dep()[Train.partition() %in% input$Train.valid.table.use],
                   Train.prediction()[Train.partition() %in% input$Train.valid.table.use])
+})
+output$Train.tunning.plot <- renderPlot({
+  print(plot(Train.model()))
 })
 
 output$Train.down.model <- downloadHandler(
