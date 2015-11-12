@@ -25,7 +25,10 @@ require("chemometrics");require("ggplot2");require("abind");require("plyr");requ
 require("prospectr");require("DiscriMiner");require("baseline");require("knitr")
 require("xtable");require("ptw");require("dtw");
 require('d3heatmap');require('randomForest');require('kernlab');require('ipred');
-require('extraTrees');require('evtree')#;require('shinyRGL');require('rgl')
+require('extraTrees');require('evtree')
+
+require('shinyRGL');require('rgl')
+
 require('shinyAce');require('shinydashboard');
 
 
@@ -57,6 +60,13 @@ shinyServer(function(input, output,session) {
     filename = "rTLC_demodata_bis.zip",
     content = function(file) {
       file.copy('www/rTLC_demodata_bis.zip', file)
+    }
+  ) 
+  
+  output$manual.pdf <- downloadHandler(
+    filename = "rTLC_manual.pdf",
+    content = function(file) {
+      file.copy('www/rTLC manual.pdf', file)
     }
   ) 
   
@@ -859,7 +869,7 @@ output$pca.loading.local.minima <- renderPrint({
   data <- loadings.PCA(model)[,as.numeric(input$pca.loading.choice)]
   maxi <- (hauteur-dist.bas)/(Zf-dist.bas)
   mini <- -dist.bas/(Zf-dist.bas)
-  RF = seq(maxi,mini,length.out=length(data))
+  RF <- colnames(data.mono.4())
   print(RF[pick.peaks(-data, input$pca.loading.local.minima.span)])
 })
 output$pca.loading.local.maxima <- renderPrint({
@@ -870,21 +880,21 @@ output$pca.loading.local.maxima <- renderPrint({
   data <- loadings.PCA(model)[,as.numeric(input$pca.loading.choice)]
   maxi <- (hauteur-dist.bas)/(Zf-dist.bas)
   mini <- -dist.bas/(Zf-dist.bas)
-  RF = seq(maxi,mini,length.out=length(data))
+  RF <- colnames(data.mono.4())
   print(RF[pick.peaks(data, input$pca.loading.local.maxima.span)])
 })
 
-# output$myWebGL.1 <- renderWebGL({ ## NOT WORKING
-#   data<-model.pca()
-#   data<-scores(data,npc=3)
-#   colnames(data)<-c("PC1","PC2","PC3")
-#   data<-cbind(dataX.mono.pre(),data)
-#   # dataX <- dataX.mono.pre()
-#   data$Color <- data$Drug
-#   text3d(data$PC1, data$PC2,data$PC3,text=data$id,col=rainbow(length(levels(factor(data$Color))))[factor(data$Color)])
-#   axes3d()
-#   title3d(xlab="PC1",ylab="PC2",zlab="PC3")
-# })
+output$myWebGL.1 <- renderWebGL({ ## NOT WORKING
+  data<-model.pca()
+  data<-scores(data,npc=3)
+  colnames(data)<-c("PC1","PC2","PC3")
+  data<-cbind(dataX.mono.pre(),data)
+  # dataX <- dataX.mono.pre()
+  data$Color <- data$Drug
+  text3d(data$PC1, data$PC2,data$PC3,text=data$id,col=rainbow(length(levels(factor(data$Color))))[factor(data$Color)])
+  axes3d()
+  title3d(xlab="PC1",ylab="PC2",zlab="PC3")
+})
 
 
 ################# Outliers PCA #################
@@ -915,14 +925,6 @@ output$quantile.outlier.pca.2<-renderPrint({
 # Method 1 : Ward Hierarchical Clustering
 data.cluster.1<-reactive({
   data <- data.mono.4()
-#   channel <- as.numeric(input$col.cluster.1)
-#   validate(
-#     need(length(channel) != 0, "At least one channel must be used")
-#   )
-#   hauteur<-input$hauteur.mono
-#   dist.bas<-input$dist.bas.mono
-#   Zf <- input$Zf.mono
-#   data <- f.rebind(data=data,channel = channel,hauteur = hauteur,dist.bas=dist.bas,Zf=Zf)
   return(data)
 })
 plot.cluster.1.1 <- reactive({

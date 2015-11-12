@@ -23,7 +23,9 @@ require("chemometrics");require("ggplot2");require("abind");require("plyr");requ
 require("prospectr");require("DiscriMiner");require("baseline");require("knitr");
 require("xtable");require("ptw");require("dtw");
 require('randomForest');require('kernlab');require('ipred');
-require('extraTrees');require('evtree')#;require('shinyRGL');require('rgl')
+require('extraTrees');require('evtree')
+
+require('shinyRGL');require('rgl')
 
 require('shinyAce');require('shinydashboard');require('d3heatmap');
 
@@ -346,9 +348,9 @@ shinyUI(navbarPage("rTLC",
                                                                        verbatimTextOutput('pca.loading.local.minima')
                                                       # )
                                                       ),
-#                                              tabPanel("PCA3D",
-#                                                       webGLOutput("myWebGL.1",height="600px")
-#                                              ),
+                                             tabPanel("PCA3D",
+                                                      webGLOutput("myWebGL.1",height="600px")
+                                             ),
                                              tabPanel("Outlier",
                                                       checkboxGroupInput("comp.outlier.pca.1","Choies of the component of the PCA to use",choices=seq(10),selected=c(1,2)),
                                                       numericInput("quantile.outlier.pca.1","quantile to use for the cutoff",0.975),
@@ -578,12 +580,21 @@ shinyUI(navbarPage("rTLC",
                                    downloadButton('mono.knitr.download','Download the report')
                                    )
                    ),
-                   tabPanel('About',
+                   tabPanel('About/help',
                             wellPanel(
                               tabsetPanel(
                                 tabPanel('R packages and Session Info',
                                           verbatimTextOutput('sessionInfo')
-                                          )
+                                          ),
+                                tabPanel('Contact',
+                                         h5('for information and specific help, contact:'),
+                                         HTML('<a href="mailto:dimitrifichou@gmail.com">Dimitri Fichou</a> '),
+                                         hr(),
+                                         HTML('<a href="mailto:p.ristivojevic@gmail.com">Petar Ristivojevic</a> ')
+                                         ),
+                                tabPanel('Manual',
+                                         downloadButton('manual.pdf','Download the pdf manual')
+                                         )
                               )
                             )
                             ),
