@@ -25,7 +25,7 @@ require("xtable");require("ptw");require("dtw");
 require('randomForest');require('kernlab');require('ipred');
 require('extraTrees');require('evtree')
 
-require('shinyRGL');require('rgl')
+# require('shinyRGL');require('rgl')
 
 require('shinyAce');require('shinydashboard');require('d3heatmap');
 
@@ -588,9 +588,12 @@ shinyUI(navbarPage("rTLC",
                                           ),
                                 tabPanel('Contact',
                                          h5('for information and specific help, contact:'),
-                                         HTML('<a href="mailto:dimitrifichou@gmail.com">Dimitri Fichou</a> '),
                                          hr(),
-                                         HTML('<a href="mailto:p.ristivojevic@gmail.com">Petar Ristivojevic</a> ')
+                                         HTML('<a href="mailto:dimitrifichou@gmail.com">Dimitri Fichou</a> '),
+                                         p('software design'),
+                                         hr(),
+                                         HTML('<a href="mailto:p.ristivojevic@gmail.com">Petar Ristivojevic</a> '),
+                                         p('ideas and feedbacks')
                                          ),
                                 tabPanel('Manual',
                                          downloadButton('manual.pdf','Download the pdf manual')

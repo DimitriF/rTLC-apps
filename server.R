@@ -27,7 +27,7 @@ require("xtable");require("ptw");require("dtw");
 require('d3heatmap');require('randomForest');require('kernlab');require('ipred');
 require('extraTrees');require('evtree')
 
-require('shinyRGL');require('rgl')
+# require('shinyRGL');require('rgl')
 
 require('shinyAce');require('shinydashboard');
 
@@ -884,17 +884,17 @@ output$pca.loading.local.maxima <- renderPrint({
   print(RF[pick.peaks(data, input$pca.loading.local.maxima.span)])
 })
 
-output$myWebGL.1 <- renderWebGL({ ## NOT WORKING
-  data<-model.pca()
-  data<-scores(data,npc=3)
-  colnames(data)<-c("PC1","PC2","PC3")
-  data<-cbind(dataX.mono.pre(),data)
-  # dataX <- dataX.mono.pre()
-  data$Color <- data$Drug
-  text3d(data$PC1, data$PC2,data$PC3,text=data$id,col=rainbow(length(levels(factor(data$Color))))[factor(data$Color)])
-  axes3d()
-  title3d(xlab="PC1",ylab="PC2",zlab="PC3")
-})
+# output$myWebGL.1 <- renderWebGL({ ## NOT WORKING
+#   data<-model.pca()
+#   data<-scores(data,npc=3)
+#   colnames(data)<-c("PC1","PC2","PC3")
+#   data<-cbind(dataX.mono.pre(),data)
+#   # dataX <- dataX.mono.pre()
+#   data$Color <- data$Drug
+#   text3d(data$PC1, data$PC2,data$PC3,text=data$id,col=rainbow(length(levels(factor(data$Color))))[factor(data$Color)])
+#   axes3d()
+#   title3d(xlab="PC1",ylab="PC2",zlab="PC3")
+# })
 
 
 ################# Outliers PCA #################
