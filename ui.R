@@ -348,9 +348,9 @@ shinyUI(navbarPage("rTLC",
                                                                        verbatimTextOutput('pca.loading.local.minima')
                                                       # )
                                                       ),
-                                             tabPanel("PCA3D",
-                                                      webGLOutput("myWebGL.1",height="600px")
-                                             ),
+#                                              tabPanel("PCA3D",
+#                                                       webGLOutput("myWebGL.1",height="600px")
+#                                              ),
                                              tabPanel("Outlier",
                                                       checkboxGroupInput("comp.outlier.pca.1","Choies of the component of the PCA to use",choices=seq(10),selected=c(1,2)),
                                                       numericInput("quantile.outlier.pca.1","quantile to use for the cutoff",0.975),
