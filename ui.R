@@ -46,7 +46,7 @@ shinyUI(navbarPage("rTLC",
                                                  tags$hr(),
                                                  h4("Load"),
                                                  fileInput('fileX', 'Choice of the batch '),
-                                                 selectizeInput("mono.Format.type","Select the format",choices=c("jpeg","png","tiff"),selected="jpeg"),
+                                                 selectizeInput("mono.Format.type","Select the format",choices=c("jpeg","png","tiff",'bmp'),selected="jpeg"),
                                                  fileInput('filemonop', 'Choice of the plate(s) file',multiple=T)
                                 ),
                                 conditionalPanel(condition = "input.filedemouse == 'QC'",
@@ -321,6 +321,7 @@ shinyUI(navbarPage("rTLC",
                                            selectizeInput('PCA.comp.a', '1st componant for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC1"),
                                            selectizeInput('PCA.comp.b', '2nd componant for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC2"),
                                            checkboxInput('pca.ellipse','Plot the ellipse according to the color',F),
+                                           numericInput('pca.ellipse.level','Level to calculate the ellipse',0.95),
                                            tableOutput("Table.dim.just.pca.label")
                                          ),
                                          mainPanel(
@@ -506,16 +507,6 @@ shinyUI(navbarPage("rTLC",
                                                                 choices=c('boot', 'repeatedcv', 'LOOCV'),
                                                                 selected='repeatedcv'),
                                                  uiOutput('Train.metric'),
-#                                                  conditionalPanel(condition="input.Trainproblem=='classification 2 class'",
-#                                                                   selectizeInput('Train.metric','what summary metric will be used to select the optimal mode',choices=c('Accuracy','Kappa','Specificity','Sensitivity','Pos_Pred_Value','Neg_Pred_Value','Detection_Rate','Balanced_Accuracy'),selected='Accuracy'),
-#                                                                   uiOutput('Train.metric.positive.class')
-#                                                                   ),
-#                                                  conditionalPanel(condition="input.Trainproblem=='classification multiclass'",
-#                                                                   selectizeInput('Train.metric','what summary metric will be used to select the optimal mode',choices=c('Accuracy','Kappa','Mean_Sensitivity','Mean_Specificity','Mean_Pos_Pred_Value','Mean_Neg_Pred_Value','Mean_Detection_Rate','Mean_Balanced_Accuracy'),selected='Accuracy')
-#                                                  ),
-#                                                  conditionalPanel(condition="input.Trainproblem=='regression'",
-#                                                                   selectizeInput('Train.metric','what summary metric will be used to select the optimal mode',choices=c('RMSE','Rsquared'),selected='RMSE')
-#                                                  ),
                                                  numericInput('Train.tunning.CV','Either the number of folds or number of resampling iterations',5),
                                                  numericInput('Train.tunning.repeat','For repeated k-fold cross-validation only: the number of complete sets of folds to compute',1)
                                                  ),
@@ -525,11 +516,14 @@ shinyUI(navbarPage("rTLC",
                                              )
                                            )
                                   ),
-                                  tabPanel("Confusion Matrix",
+                                  tabPanel("Confusion Matrix (classification)",
                                            checkboxGroupInput('Train.valid.table.use','Data to use',choices=c('Training data'=T,'Test data'=F),selected=F),
                                            tableOutput('Train.valid.table'),
                                            verbatimTextOutput('Train.valid.print')
                                            ),
+                                  tabPanel("Prediction curve (regression)",
+                                           plotOutput('Train.regression.curve',height="600px")
+                                  ),
                                   tabPanel("Prediction table",
                                            dataTableOutput('Train.pred.table')
                                            ),
@@ -542,38 +536,47 @@ shinyUI(navbarPage("rTLC",
                                   tabPanel('Tunning Curve',
                                            plotOutput('Train.tunning.plot')
                                            ),
-                                  tabPanel("Editor.pred",
-                                           aceEditor("DPEeditorpred","model <- Train.model() \nInd <- Train.Ind()\nDep <- Train.Dep()",mode="r")
-                                  ),
-                                  tabPanel("Plot.pred",
-                                           imageOutput("DPE.pred.plot")
-                                  ),
-                                  tabPanel("Print.pred",
-                                           verbatimTextOutput("DPE.pred.print")
+                                  tabPanel('DPE',
+                                           tabsetPanel(
+                                             tabPanel("Editor.pred",
+                                                      aceEditor("DPEeditorpred","model <- Train.model() \nInd <- Train.Ind()\nDep <- Train.Dep()",mode="r")
+                                             ),
+                                             tabPanel("Plot.pred",
+                                                      imageOutput("DPE.pred.plot")
+                                             ),
+                                             tabPanel("Print.pred",
+                                                      verbatimTextOutput("DPE.pred.print")
+                                             )
                                            )
+                                  )
                                   )
                                 )
                             )
                             ),
                    tabPanel("Report Output",
-                            
-                            checkboxInput("mono.knitr.file.name", "Print the name of the file", TRUE),
-                            checkboxInput("monoknitrpicture", "Print the analysis picture(s)", TRUE),
-                            checkboxInput("mono.knitr.batch.simple", "Print the batch", TRUE),
-                            checkboxInput("mono.knitr.batch.pred", "Print the batch with the prediction (QC only)", FALSE),
-                            selectizeInput("mono.knitr.plot.brut","Print the chromatograms before process",choices=c("None","2","all"),selected="None"),
-                            checkboxInput("mono.knitr.preprocess","Print the summary of the preprocess",F),
-                            selectizeInput("mono.knitr.plot.net","Print the chromatograms after process",choices=c("None","2","all"),selected="None"),
-                            #                                         checkboxInput("mono.knitr.preprocess.input", "Print the Preprocessing input", FALSE),
-                            #                                         checkboxInput("mono.knitr.pca.input", "Print the pca input", FALSE),
-                            checkboxInput("mono.knitr.pca.plot", "Print the pca plot", FALSE),
-                            #                                         checkboxInput("mono.knitr.cluster.input", "Print the cluster input", FALSE),
-                            checkboxInput("mono.knitr.cluster.plot", "Print the cluster plot", FALSE),
-                            checkboxInput("mono.knitr.heatmap.plot", "Print the heatmap plot", FALSE),
-                            checkboxInput('mono.knitr.prediction.summary.model','Print model summary',F),
-                            
-                            downloadButton('mono.knitr.download','Download the report')
-                            
+                            column(2,h4('Data Input'),
+                                   checkboxInput("mono.knitr.file.name", "Print the name of the file", TRUE),
+                                   checkboxInput("monoknitrpicture", "Print the analysis picture(s)", TRUE),
+                                   checkboxInput("mono.knitr.batch.simple", "Print the batch", TRUE),
+                                   checkboxInput("mono.knitr.batch.pred", "Print the batch with the prediction (QC only)", FALSE),
+                                   selectizeInput("mono.knitr.plot.brut","Print the chromatograms before process",choices=c("None","2","all"),selected="None")
+                                   ),
+                            column(2,h4('Data Preprocessing and Variable Selection'),
+                                   checkboxInput("mono.knitr.preprocess","Print the summary of the preprocess",F),
+                                   selectizeInput("mono.knitr.plot.net","Print the chromatograms after process",choices=c("None","2","all"),selected="None"),
+                                   checkboxInput("mono.knitr.var.select","Print the Variable.selection table",F)
+                                   ),
+                            column(2,h4('Exploratory Statistics'),
+                                   checkboxInput("mono.knitr.pca.plot", "Print the pca plot", FALSE),
+                                   checkboxInput("mono.knitr.cluster.plot", "Print the cluster plot", FALSE),
+                                   checkboxInput("mono.knitr.heatmap.plot", "Print the heatmap plot", FALSE)
+                                   ),
+                            column(2,h4('Predictive Statistics'),
+                                   checkboxInput('mono.knitr.prediction.summary.model','Print model summary',F)
+                                   ),
+                            column(4,h4('Download'),
+                                   downloadButton('mono.knitr.download','Download the report')
+                                   )
                    ),
                    tabPanel('About',
                             wellPanel(

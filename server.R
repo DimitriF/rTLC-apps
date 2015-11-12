@@ -794,7 +794,7 @@ pca.plot.1<-reactive({
     data$Label<-data[,input$label.plot.pca]
     plot<-plot+geom_text(data=data,aes(x=PC1,y=PC2,label=Label),hjust=as.numeric(input$hjust.pca),vjust=as.numeric(input$vjust.pca))
   }     
-  if(input$pca.ellipse == T){plot <- plot+ stat_ellipse(data=data,aes(x=PC1,y=PC2,col=Color))}
+  if(input$pca.ellipse == T){plot <- plot+ stat_ellipse(data=data,aes(x=PC1,y=PC2,col=Color),level=input$pca.ellipse.level)}
   return(plot+ggtitle(input$pca.plot.1.title))
 })
 output$pca.plot.1<-renderPlot({
@@ -1137,6 +1137,11 @@ Train.prediction <- reactive({
   data <- data.frame(Ind = Train.Ind(), Dep = Train.Dep())
   predict(Train.model(),newdata=data)
 })
+output$Train.regression.curve <- renderPlot({
+  model <- Train.model()
+  plot(x=model$pred$pred,y=model$pred$obs)
+})
+
 output$Train.pred.table <- renderDataTable({
   cbind(dataX.mono.pre(),Prediction = Train.prediction(), Training = Train.partition())
 })

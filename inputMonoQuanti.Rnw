@@ -215,14 +215,8 @@ if(input$mono.knitr.heatmap.plot == T){
 
 <<echo = FALSE,results = 'asis'>>=
 ## model summary
-if(input$mono.knitr.prediction.summary.model == T){
-    if(input$filedemouse != 'QC'){
-      print(xtable(selection.table()),include.rownames=F,colnames=T)
-      # print(Train.model())
-    }else{
-      print(xtable(selection.table()),include.rownames=F,colnames=T)
-      # print(Pred.upload.model()[[1]])
-    }
+if(input$mono.knitr.prediction.summary.model == T | input$mono.knitr.var.select ==T){
+  print(xtable(selection.table()),include.rownames=F,colnames=T)
 }
 
 
