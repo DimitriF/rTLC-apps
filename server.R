@@ -590,7 +590,7 @@ Train.partition <- reactive({
   output$VS_slider_10 <- renderUI({sliderInput("VS_slider_10", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
   output$VS_slider_11 <- renderUI({sliderInput("VS_slider_11", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
   output$VS_slider_12 <- renderUI({sliderInput("VS_slider_12", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  
+  output$VS_slider_score.loading <- renderUI({sliderInput("VS_slider_score.loading", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
   selection.table <- reactive({
     if(input$filedemouse != 'QC'){
       n <- 12

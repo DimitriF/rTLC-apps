@@ -336,6 +336,7 @@ shinyUI(navbarPage("rTLC",
                                              ),
                                              tabPanel("Loading Plot",
                                                       radioButtons('pca.loading.choice','Componant',choices=seq(10),selected=1),
+                                                      p('The RF value here are wrong, all the channels were merged during the variables selection so RF do not make sense anymore, except if only one full channel is used'),
                                                       plotOutput("pca.loading"),
                                                       checkboxInput('pcaloadinglocalmaxima','pick peak for local maxima',F),
                                                       numericInput('pca.loading.local.maxima.span','Neighbourhood, used to define local maxima',20),
@@ -359,6 +360,7 @@ shinyUI(navbarPage("rTLC",
                                              ),
                                               tabPanel('score and loading together',
                                                        p('Note that for this graphic, the variable selection is by passed, could evolve in the futur though'),
+                                                       uiOutput('VS_slider_score.loading'),
                                                        uiOutput('pca.plot.score.loading.title'),
                                                        plotOutput('pca.plot.score.loading',height='800px')
                                                        )
@@ -576,6 +578,7 @@ shinyUI(navbarPage("rTLC",
                             column(2,h4('Exploratory Statistics'),
                                    checkboxInput("mono.knitr.pca.plot", "Print the pca plot", FALSE),
                                    checkboxInput('mono.knitr.pca.score.loading','Print the plot with score and loadings',F),
+                                   checkboxInput('mono.knitr.pca.score.loading.split','Print the plot with score and loadings splited',F),
                                    checkboxInput("mono.knitr.cluster.plot", "Print the cluster plot", FALSE),
                                    checkboxInput("mono.knitr.heatmap.plot", "Print the heatmap plot", FALSE)
                                    ),
@@ -596,10 +599,12 @@ shinyUI(navbarPage("rTLC",
                                          h5('for information and specific help, contact:'),
                                          hr(),
                                          HTML('<a href="mailto:dimitrifichou@gmail.com">Dimitri Fichou</a> '),
-                                         p('software design'),
                                          hr(),
                                          HTML('<a href="mailto:p.ristivojevic@gmail.com">Petar Ristivojevic</a> '),
-                                         p('ideas and feedbacks')
+                                         hr(),
+                                         p('Dimitri Fichou and Dr Petar Ristivojević contributed to this application. 
+                                            Both of them discussed about design, visualisation tools and multivariate analysis. 
+                                            Mr Fichou designed all features of the application and Dr Petar Ristivojević contributed by ideas and feed backs.')
                                          ),
                                 tabPanel('Manual',
                                          downloadButton('manual.pdf','Download the pdf manual')
