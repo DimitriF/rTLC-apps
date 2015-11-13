@@ -73,22 +73,13 @@ shinyServer(function(input, output,session) {
   output$checkpoint.1.download <- downloadHandler(
     filename = "rTLC_checkpoint_1.Rdata",
     content = function(con) {
-      assign("data",list(chrom = data.mono.2(),batch = dataX.mono.pre(), Vertical.dim = c(dim(data.mono.2())[2],input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)))
+      assign("data",list(chrom = data.mono.2(),
+                         batch = dataX.mono.pre(),
+                         Vertical.dim = c(dim(data.mono.2())[2],input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)))
       save(list="data", file=con)
     }
     )
-  output$checkpoint.1.download.xlsx <- downloadHandler(
-    filename = "rTLC_checkpoint_1.xslx",
-    content = function(file) {
-      tempFile <- tempfile(fileext = ".xlsx")
-      write.xlsx(data.mono.2()[,,1],file=tempFile,sheetName = 'red',col.names=F,row.names =F,append=F)
-      write.xlsx(data.mono.2()[,,2],file=tempFile,sheetName = 'green',col.names=F,row.names =F,append=T)
-      write.xlsx(data.mono.2()[,,3],file=tempFile,sheetName = 'blue',col.names=F,row.names =F,append=T)
-      write.xlsx(data.mono.2()[,,4],file=tempFile,sheetName = 'grey',col.names=F,row.names =F,append=T)
-      write.xlsx(dataX.mono.pre(),file=tempFile,sheetName = 'batch',col.names=T,row.names =F,append=T)
-      file.rename(tempFile, file)
-    }
-  )
+
   output$checkpoint.1.download.zip <- downloadHandler(
     filename = "matlab_export.zip",
     content = function(file) {
@@ -108,38 +99,7 @@ shinyServer(function(input, output,session) {
     },
     contentType = "application/zip"
   )
-  output$checkpoint.1.download.red <- downloadHandler(
-    filename = "red_channel.csv",
-    content = function(file) {
-    # tempFile <- tempfile(fileext = ".csv")
-    write.csv(data.mono.2()[,,1],file=file,row.names=F,col.names = F,sep=';')
-    # file.rename(tempFile, file)
-    }
-  )
-  output$checkpoint.1.download.green <- downloadHandler(
-    filename = "green_channel.csv",
-    content = function(file) {
-      # tempFile <- tempfile(fileext = ".csv")
-      write.csv(data.mono.2()[,,2],file=file,row.names=F,col.names = F,sep=';')
-      # file.rename(tempFile, file)
-    }
-  )
-  output$checkpoint.1.download.blue <- downloadHandler(
-    filename = "blue_channel.csv",
-    content = function(file) {
-      # tempFile <- tempfile(fileext = ".csv")
-      write.csv(data.mono.2()[,,3],file=file,row.names=F,col.names = F,sep=';')
-      # file.rename(tempFile, file)
-    }
-  )
-  output$checkpoint.1.download.grey <- downloadHandler(
-    filename = "grey_channel.csv",
-    content = function(file) {
-      # tempFile <- tempfile(fileext = ".csv")
-      write.csv(data.mono.2()[,,4],file=file,row.names=F,col.names = F,sep=';')
-      # file.rename(tempFile, file)
-    }
-  )
+
     inFile.photo <- reactive({
         validate(
           need(input$filedemouse != "checkpoint", "Picture and dimension table not available, chromatograms already extracted.")
@@ -313,7 +273,7 @@ shinyServer(function(input, output,session) {
   })
   
   output$TableDimensionVerticale <-renderTable({
-    if(input$filedemouse == 'QC'){print('truc');Default <- Pred.upload.model()[[7]]}
+    if(input$filedemouse == 'QC'){Default <- Pred.upload.model.vert.dim()}
     if(input$filedemouse == 'checkpoint'){Default <- checkpoint.vert.dim()}
     if(input$filedemouse != 'QC' & input$filedemouse != 'checkpoint'){Default <- c(512,10,7,0.8)}
     data <- data.frame(Option = c('Pixel height','Plate height','Retention Front','Bottom distance'),
@@ -1235,6 +1195,11 @@ checkpoint.vert.dim <- reactive({
   )
   inFile <- input$checkpoint.1.upload
   load(inFile$datapath)
+  return(data$Vertical.dim)
+})
+
+Pred.upload.model.vert.dim <- reactive({
+  data <- Pred.upload.model()
   return(data$Vertical.dim)
 })
 
