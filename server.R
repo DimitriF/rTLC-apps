@@ -281,11 +281,13 @@ shinyServer(function(input, output,session) {
                        Default = Default
     )
     if(input$filedemouse == 'QC'){
-      data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='number' readonly='readonly' value='",data$Default,"'>")
+      data[,c(1,3)]
+      # data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='number' readonly='readonly' value='",data$Default,"'>")
     }else{
       data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='number'  value='",data$Default,"'>")
+      data[,c(1,2)]
     }
-    data[,c(1,2)]
+    
   },include.rownames=F,include.colnames=F, sanitize.text.function = function(y) y)
 
   output$TableDimension <-renderTable({

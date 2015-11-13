@@ -75,7 +75,7 @@ shinyUI(navbarPage("rTLC",
                                                         imageOutput("image.redim.mono")
                                                     ),
                                                     shinydashboard::box(title="Vertical Dimensions (mm)",collapsible = F,width=4,height=350,
-                                                        tableOutput('TableDimensionVerticale')# uiOutput('slider.subset.height')
+                                                        tableOutput('TableDimensionVerticale')
                                                     ),
                                                     shinydashboard::box(title="Horizontale Dimensions (mm)",collapsible = F,width=12,height=500,
                                                         tableOutput('TableDimension'),
