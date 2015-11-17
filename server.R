@@ -275,7 +275,7 @@ shinyServer(function(input, output,session) {
   output$TableDimensionVerticale <-renderTable({
     if(input$filedemouse == 'QC'){Default <- Pred.upload.model.vert.dim()}
     if(input$filedemouse == 'checkpoint'){Default <- checkpoint.vert.dim()}
-    if(input$filedemouse != 'QC' & input$filedemouse != 'checkpoint'){Default <- c(512,10,7,0.8)}
+    if(input$filedemouse != 'QC' & input$filedemouse != 'checkpoint'){Default <- c(128,10,7,0.8)}
     data <- data.frame(Option = c('Pixel height','Plate height','Retention Front','Bottom distance'),
                        Value = c('redim.height','hauteur.mono','Zf.mono','dist.bas.mono'),
                        Default = Default
@@ -1107,7 +1107,7 @@ Train.model <- eventReactive(input$Train.go,{
                               repeats=input$Train.tunning.repeat,
                               savePredictions = "final",
                               summaryFunction = multiClassSummary,
-                              allowParallel=T,verboseIter=T)
+                              allowParallel=T,verboseIter=T,returnData=F)
     }
     if(input$Trainproblem == 'regression'){
       control <- trainControl(method = input$Train.control.method,
@@ -1115,7 +1115,7 @@ Train.model <- eventReactive(input$Train.go,{
                               repeats=input$Train.tunning.repeat,
                               savePredictions = "final",
                               summaryFunction = defaultSummary,
-                              allowParallel=T,verboseIter=T)
+                              allowParallel=T,verboseIter=T,returnData=F)
     }
     
     set.seed(1)
