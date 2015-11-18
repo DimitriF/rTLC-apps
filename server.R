@@ -268,9 +268,6 @@ shinyServer(function(input, output,session) {
       if(length(input[[paste0('batch.filter.',i)]]) != 0){
         Not.Use[!data[,i] %in% input[[paste0('batch.filter.',i)]]] <- T
       }
-      truc <- tagAppendChild(truc,
-                             selectizeInput(paste0('batch.filter.',i),paste0(colnames(data)[i],' Column filter. Keep only selected, if none, keep all.'),multiple=T,choices=unique(as.character(data[,i])))
-      )
     }
     return(Not.Use)
   })
