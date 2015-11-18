@@ -22,7 +22,7 @@
 require("jpeg");require("png");require('caret');require('klaR');require('xlsx');
 require("ChemometricsWithR");require("gplots");require("kohonen");require("devtools");
 require("chemometrics");require("ggplot2");require("abind");require("plyr");require('dplyr');
-require("prospectr");require("DiscriMiner");require("baseline");require("knitr")
+require("prospectr");require("DiscriMiner");require("baseline");require("knitr");require('rmarkdown');
 require("xtable");require("ptw");require("dtw");
 require('d3heatmap');require('randomForest');require('kernlab');require('ipred');
 require('extraTrees');require('evtree')
@@ -308,11 +308,33 @@ shinyServer(function(input, output,session) {
                          Tolerance = rep(2,truc)
       )
     }
+#     inFile <- inFile.X()    
+#     if(is.null(inFile)){
+#       data <- data.mono.1.1()
+#       data <- data.frame(id = seq(dim(data)[1]),class = rep('unknow',dim(data)[1]),ref = rep('unknow',dim(data)[1]),info=rep('unknow',dim(data)[1]))
+#     }else{
+#       data <- read.xlsx(as.character(inFile[1,4]),sheetIndex=1)
+#     }
+    inFile <- input$TableDimensionUpload
+    if(!is.null(inFile)){
+      data.saved <- read.xlsx(as.character(inFile[1,4]),sheetIndex=1)
+      validate(
+        need(nrow(data.saved) == truc, "There is not the same number of row in your saved data than the number of pictures")
+      )
+      data <- data.saved
+    }
     for(i in c(1:ncol(data))){
       data[,i] <- paste0("<input id='",colnames(data)[i],'.', 1:nrow(data),"' class='shiny-bound-input' type='number'  value='",data[,i],"'>")
     }
     data
   }, sanitize.text.function = function(y) y)
+  
+  output$TableDimensionSave <- downloadHandler(
+    filename = "TableDimensionSave.xls",
+    content = function(file) {
+      write.xlsx(TableDimension(),file=file,row.names = F)
+    }
+  )
 
 #   output$TableDimension <-renderHotable({
 #     inFile <- inFile.photo()
@@ -1284,6 +1306,31 @@ output$mono.knitr.download = downloadHandler(
     file.rename(out, file) # move pdf to file for downloading
   },
   contentType = 'application/pdf'
+)
+
+output$downloadReport <- downloadHandler(
+  filename = function() {
+    paste('my-report', sep = '.', switch(
+      input$reportformat, PDF = 'pdf', HTML = 'html', Word = 'docx'
+    ))
+  },
+  
+  content = function(file) {
+#     src <- normalizePath('report.Rmd')
+#     
+#     # temporarily switch to the temp dir, in case you do not have write
+#     # permission to the current working directory
+#     owd <- setwd(tempdir())
+#     on.exit(setwd(owd))
+#     file.copy(src, 'report.Rmd')
+#     
+#     library(rmarkdown)
+    out <- render('report.Rmd', switch(
+      input$reportformat,
+      PDF = pdf_document(), HTML = html_document(), Word = word_document()
+    ))
+    file.rename(out, file)
+  }
 )
 
 output$sessionInfo <- renderPrint({

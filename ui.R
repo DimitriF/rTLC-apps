@@ -79,7 +79,9 @@ shinyUI(navbarPage("rTLC",
                                                     ),
                                                     shinydashboard::box(title="Horizontale Dimensions (mm)",collapsible = F,width=12,height=500,
                                                         tableOutput('TableDimension'),
-                                                        radioButtons('TableDimensionConvention','Convention to use in the Horizontal table',choices=c('Linomat','ATS-4'),selected='Linomat')
+                                                        radioButtons('TableDimensionConvention','Convention to use in the Horizontal table',choices=c('Linomat','ATS-4'),selected='Linomat'),
+                                                        downloadButton('TableDimensionSave','Save the Dimension table'),
+                                                        fileInput("TableDimensionUpload","Upload the saved table")
                                                         
                                                         # hotable("TableDimension")
                                                     )
@@ -586,7 +588,10 @@ shinyUI(navbarPage("rTLC",
                                    checkboxInput('mono.knitr.prediction.summary.model','Print model summary',F)
                                    ),
                             column(4,h4('Download'),
-                                   downloadButton('mono.knitr.download','Download the report')
+                                   downloadButton('mono.knitr.download','Download the report'),
+                                   radioButtons('reportformat', 'Document format', c('PDF', 'HTML', 'Word'),
+                                                inline = TRUE),
+                                   downloadButton('downloadReport')
                                    )
                    ),
                    tabPanel('About/help',
