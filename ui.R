@@ -17,6 +17,7 @@
 #51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #### rTLC ######
 
+
 require("jpeg");require("png");require('caret');require('klaR');require('xlsx');
 require("ChemometricsWithR");require("gplots");require("kohonen");require("devtools");
 require("chemometrics");require("ggplot2");require("abind");require("plyr");require('dplyr');
@@ -88,7 +89,8 @@ shinyUI(navbarPage("rTLC",
                                                   )
                                          ),
                                          tabPanel("batch",
-                                                  tableOutput("table1")
+                                                  column(3,hr(),uiOutput('batch.filter')),
+                                                  column(9,hr(),tableOutput("table1"))
                                          ),
                                          tabPanel("Chromatograms",
                                                   uiOutput('choice.band.mono.bef.1'),
@@ -618,7 +620,7 @@ shinyUI(navbarPage("rTLC",
                             )
                             ),
                    tags$head(tags$style(type="text/css", "tfoot {display: table-header-group}")),
-                   tags$head(tags$style(HTML(".shiny-output-error-validation {color: green;}"))),
+                   tags$head(tags$style(HTML(".shiny-output-error-validation {color: red;font-size: 30px}"))),
                    tags$head(tags$style(type="text/css", ".shiny-progress .progress {position: absolute;width: 100%;top: 100px;height: 10px;margin: 0px;}")),
                    tags$head(tags$style(type="text/css", ".shiny-progress .progress-text {position: absolute;border-style: solid;
                                         border-width: 2px;right: 10px;height: 36px;width: 50%;background-color: #EEF8FF;margin: 0px;padding: 2px 3px;opacity: 1;}"))

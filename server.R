@@ -43,6 +43,24 @@ shinyServer(function(input, output,session) {
 #   session$onSessionEnded(function() {
 #     obs$suspend()
 #   })
+  output$mtcars <- renderD3tf({
+    
+    # Define table properties. See http://tablefilter.free.fr/doc.php
+    # for a complete reference
+    tableProps <- list(
+      btn_reset = TRUE,
+      sort = TRUE,
+      sort_config = list(
+        # alphabetic sorting for the row names column, numeric for all other columns
+        sort_types = c("String", rep("Number", ncol(mtcars)))
+      )
+    );
+    
+    d3tf(mtcars,
+         tableProps = tableProps,
+         showRowNames = TRUE,
+         tableStyle = "table table-bordered");
+  })
   #### demo batch #####
   output$download.demo.batch <- downloadHandler(
     filename = "rTLC_demobatch.xls",
@@ -230,29 +248,30 @@ shinyServer(function(input, output,session) {
     return(data[!Not.Use(),])
   })
   output$table1 <-renderTable({
-    if(input$filedemouse == 'checkpoint'){
-      validate(
-        need(input$checkpoint.1.upload != "", "Please upload your Rdata file")
-      )
-      inFile <- input$checkpoint.1.upload
-      load(inFile[1,4])
-      data <- data[[2]]
-      data$id <- seq(nrow(data))
-    }else{
       data <- dataX.editable()
       validate(
         need(length(colnames(data)) >= 4, "Your batch must contain at least 4 columns"),
         need(colnames(data)[1] == "id", "The first column of your batch is not 'id'"),
         need(data[,1] == seq(1:nrow(data)) , "Your id column is not a sequence of number starting from 1")
       )
-    }
     Not.Use <- paste0("<input id='Not.Use.", 1:nrow(data), "' class='shiny-bound-input' type='checkbox' value='1'>")
     for(i in c(2:ncol(data))){
       data[,i] <- paste0("<input id='",colnames(data)[i],'.', 1:nrow(data),"' class='shiny-bound-input' type='text' value='",data[,i],"'>")
     }
-    data <- data.frame(cbind(data,Not.Use))
+    data <- data.frame(cbind(Not.Use,data))
     return(data)
   }, sanitize.text.function = function(y) y)
+  
+  output$batch.filter <- renderUI({
+    data <- dataX.editable()
+    truc <- tagList()
+    for(i in c(2:ncol(data))){
+      truc <- tagAppendChild(truc,
+                             selectizeInput(paste0('batch.filter.',i),paste0(colnames(data)[i],' Column filter. Keep only, if none, keep all.'),multiple=T,choices=unique(as.character(data[,i])))
+      )
+    }
+    truc
+  })
   
   Not.Use <- reactive({
     validate(
@@ -261,6 +280,15 @@ shinyServer(function(input, output,session) {
     Not.Use <- c() 
     for(i in seq(nrow(dataX.mono.pre.pre()))){
       Not.Use <- c(Not.Use, input[[paste0("Not.Use.",i)]])
+    }
+    data <- dataX.editable()
+    for(i in c(2:ncol(data))){
+      if(length(input[[paste0('batch.filter.',i)]]) != 0){
+        Not.Use[!data[,i] %in% input[[paste0('batch.filter.',i)]]] <- T
+      }
+      truc <- tagAppendChild(truc,
+                             selectizeInput(paste0('batch.filter.',i),paste0(colnames(data)[i],' Column filter. Keep only selected, if none, keep all.'),multiple=T,choices=unique(as.character(data[,i])))
+      )
     }
     return(Not.Use)
   })
