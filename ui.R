@@ -436,57 +436,57 @@ shinyUI(navbarPage("rTLC",
                                          tabsetPanel(
                                            tabPanel("Editor",
                                                     aceEditor("DPEeditor","
-                                                              ## This is a comment
-                                                              ## This feature allow you to directly enter R code to perform data analysis
-                                                              ## Two data are used here :
-                                                              ## data : the chromatograms, they are store in a 3d array 
-                                                              ## each row is an observation
-                                                              ## each column is a variable (a Retention time)
-                                                              ## each layer is a channel (1 for red, 2 for green, 3 for blue and 4 for grey)
-                                                              ## dataX : the batch file
-                                                              
-                                                              ## Uncomment the next line to plot the 1st chromatogram of the red channel
-                                                              # plot(data['1',,1],type='l')
-                                                              
-                                                              ## Uncomment the next line to plot the loading plot of the PCA model for the green channel
-                                                              # loadingplot(PCA(data[,,2]))
-                                                              
-                                                              ## Uncomment the next line to plot the score plot of the PCA model for the grey channel
-                                                              # scoreplot(PCA(data[,,2]))
-                                                              
-                                                              ## Uncomment the next line to plot the code of the kohonen som model for the green channel
-                                                              # plot(kohonen::som(data[,,2],somgrid(2,2,'hexagonal')),type='codes')
-                                                              
-                                                              ## Map of som kohonen
-                                                              # model <- kohonen::som(data[,,2],somgrid(2,2,'hexagonal'))
-                                                              # plot(model,type='mapping',labels=paste0(dataX$Drug,dataX$id,sep=' ; '))
-                                                              
-                                                              ## Uncomment the next line to plot the hist of the kmeans model for the green channel
-                                                              # hist(kmeans(data[,,2],center=3,iter.max=1,nstart=1,algorithm='Hartigan-Wong')$cluster)
-                                                              
-                                                              ## Uncomment the next lines to plot the hist of the kmeans model for the green channel
-                                                              model <- kmeans(data[,,2],center=3,iter.max=1,nstart=1,algorithm='Hartigan-Wong')
-                                                              Var.Dep <- 'Drug'
-                                                              data <- data.frame(box = model$cluster,Var.Dep=dataX[,Var.Dep])
-                                                              print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
-                                                              
-                                                              ## svm try
-                                                              #reduce <- PCA(data[,,4])$scores[,1:10]
-                                                              #colnames(reduce) <- paste0('PC',seq(10))
-                                                              #colnames(reduce)
-                                                              #model <- svm(x=reduce,y=factor(dataX$drug),type='C-classification')
-                                                              #print(summary(model))
-                                                              #table.conf <- table(dataX$drug,predict(model,newdata=reduce))
-                                                              #diag(table.conf) <- 0
-                                                              #print(sum(table.conf)/nrow(dataX))
-                                                              #table(dataX$drug,predict(model,newdata=data[,,4]))
-                                                              
-                                                              ## plsDA try
-                                                              #model <- plsDA(data[,,3],dataX$drug,autosel=F,comps=5)
-                                                              #plot(model)
-                                                              #print(model$error_rate)
-                                                              #print(model$confusion)
-                                                              ",mode="r")
+## This is a comment
+## This feature allow you to directly enter R code to perform data analysis
+## Two data are used here :
+## data : the chromatograms, they are store in a 3d array 
+## each row is an observation
+## each column is a variable (a Retention time)
+## each layer is a channel (1 for red, 2 for green, 3 for blue and 4 for grey)
+## dataX : the batch file
+
+## Uncomment the next line to plot the 1st chromatogram of the red channel
+# plot(data['1',,1],type='l')
+
+## Uncomment the next line to plot the loading plot of the PCA model for the green channel
+# loadingplot(PCA(data[,,2]))
+
+## Uncomment the next line to plot the score plot of the PCA model for the grey channel
+# scoreplot(PCA(data[,,2]))
+
+## Uncomment the next line to plot the code of the kohonen som model for the green channel
+# plot(kohonen::som(data[,,2],somgrid(2,2,'hexagonal')),type='codes')
+
+## Map of som kohonen
+# model <- kohonen::som(data[,,2],somgrid(2,2,'hexagonal'))
+# plot(model,type='mapping',labels=paste0(dataX$Drug,dataX$id,sep=' ; '))
+
+## Uncomment the next line to plot the hist of the kmeans model for the green channel
+# hist(kmeans(data[,,2],center=3,iter.max=1,nstart=1,algorithm='Hartigan-Wong')$cluster)
+
+## Uncomment the next lines to plot the hist of the kmeans model for the green channel
+model <- kmeans(data[,,2],center=3,iter.max=1,nstart=1,algorithm='Hartigan-Wong')
+Var.Dep <- 'Drug'
+data <- data.frame(box = model$cluster,Var.Dep=dataX[,Var.Dep])
+print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
+
+## svm try
+#reduce <- PCA(data[,,4])$scores[,1:10]
+#colnames(reduce) <- paste0('PC',seq(10))
+#colnames(reduce)
+#model <- svm(x=reduce,y=factor(dataX$drug),type='C-classification')
+#print(summary(model))
+#table.conf <- table(dataX$drug,predict(model,newdata=reduce))
+#diag(table.conf) <- 0
+#print(sum(table.conf)/nrow(dataX))
+#table(dataX$drug,predict(model,newdata=data[,,4]))
+
+## plsDA try
+#model <- plsDA(data[,,3],dataX$drug,autosel=F,comps=5)
+#plot(model)
+#print(model$error_rate)
+#print(model$confusion)
+",mode="r")
                                                     ),
                                            tabPanel("Plot",
                                                     imageOutput("DPEplot")

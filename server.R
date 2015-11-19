@@ -249,7 +249,7 @@ shinyServer(function(input, output,session) {
     truc <- tagList()
     for(i in c(2:ncol(data))){
       truc <- tagAppendChild(truc,
-                             selectizeInput(paste0('batch.filter.',i),paste0(colnames(data)[i],' Column filter. Keep only, if none, keep all.'),multiple=T,choices=unique(as.character(data[,i])))
+                             selectizeInput(paste0('batch.filter.',i),paste0(colnames(data)[i],' Column filter. Keep only selected, if none, keep all.'),multiple=T,choices=unique(as.character(data[,i])))
       )
     }
     truc
