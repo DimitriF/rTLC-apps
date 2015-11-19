@@ -49,7 +49,7 @@ shinyUI(navbarPage("rTLC",
                                                  tags$hr(),
                                                  h4("Load"),
                                                  fileInput('fileX', 'Choice of the batch '),
-                                                 selectizeInput("mono.Format.type","Select the format",choices=c("jpeg","png","tiff",'bmp'),selected="jpeg"),
+                                                 selectizeInput("mono.Format.type","Select the format",choices=c("jpeg","png","tiff"),selected="jpeg"),
                                                  fileInput('filemonop', 'Choice of the plate(s) file',multiple=T)
                                 ),
                                 conditionalPanel(condition = "input.filedemouse == 'QC'",
@@ -75,8 +75,15 @@ shinyUI(navbarPage("rTLC",
                                                         uiOutput("select.image.redim.mono"),
                                                         imageOutput("image.redim.mono")
                                                     ),
-                                                    shinydashboard::box(title="Vertical Dimensions (mm)",collapsible = F,width=4,height=350,
-                                                        tableOutput('TableDimensionVerticale')
+                                                    shinydashboard::box(title="Vertical Dimensions (mm)",collapsible = F,width=4,height=550,
+                                                        tableOutput('TableDimensionVerticale'),
+                                                        h4('Image Preprocessing'),
+                                                        tableOutput('TablePicturePreprocess.1'),
+                                                        tableOutput('TablePicturePreprocess.2')
+#                                                         numericInput('Picture.gamma','Gamma correction',1),
+#                                                         numericInput('Picture.medianfilter','medianFilter',1),
+#                                                         checkboxInput('Picture.lowpass','Low pass filter',F),
+#                                                         checkboxInput('Picture.highpass','High pass filter',F)
                                                     ),
                                                     shinydashboard::box(title="Horizontale Dimensions (mm)",collapsible = F,width=12,height=500,
                                                         tableOutput('TableDimension'),

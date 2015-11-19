@@ -75,7 +75,8 @@ shinyServer(function(input, output,session) {
     content = function(con) {
       assign("data",list(chrom = data.mono.2(),
                          batch = dataX.mono.pre(),
-                         Vertical.dim = c(dim(data.mono.2())[2],input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)))
+                         Vertical.dim = c(dim(data.mono.2())[2],input$hauteur.mono,input$Zf.mono,input$dist.bas.mono),
+                         PicturePreprocess = PicturePreprocess()))
       save(list="data", file=con)
     }
     )
@@ -280,14 +281,14 @@ shinyServer(function(input, output,session) {
   })
   
   output$TableDimensionVerticale <-renderTable({
-    if(input$filedemouse == 'QC'){Default <- Pred.upload.model.vert.dim()}
-    if(input$filedemouse == 'checkpoint'){Default <- checkpoint.vert.dim()}
+    if(input$filedemouse == 'QC'){Default <- Pred.upload.model()$Vertical.dim}
+    if(input$filedemouse == 'checkpoint'){Default <- checkpoint.data()$Vertical.dim}
     if(input$filedemouse != 'QC' & input$filedemouse != 'checkpoint'){Default <- c(128,10,7,0.8)}
     data <- data.frame(Option = c('Pixel height','Plate height','Retention Front','Bottom distance'),
                        Value = c('redim.height','hauteur.mono','Zf.mono','dist.bas.mono'),
                        Default = Default
     )
-    if(input$filedemouse == 'QC'){
+    if(input$filedemouse == 'QC'| input$filedemouse == 'checkpoint'){
       data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='number' readonly='readonly' value='",data$Default,"'>")
       data[,c(1,2)]
     }else{
@@ -296,6 +297,53 @@ shinyServer(function(input, output,session) {
     }
     
   },include.rownames=F,include.colnames=F, sanitize.text.function = function(y) y)
+  
+  output$TablePicturePreprocess.1 <-renderTable({
+    if(input$filedemouse == 'QC'){if('PicturePreprocess' %in% names(Pred.upload.model())){Default <- Pred.upload.model()$PicturePreprocess}else{Default <- c(1,1,0,0)}}
+    if(input$filedemouse == 'checkpoint'){if('PicturePreprocess' %in% names(checkpoint.data())){Default <- checkpoint.data()$PicturePreprocess}else{Default <- c(1,1,0,0)}}
+    if(input$filedemouse != 'QC' & input$filedemouse != 'checkpoint'){Default <- c(1,1,0,0)}
+    data <- data.frame(Option = c('Gamma','Medianfilter','Lowpass','Highpass'),
+                       Value = c('Picture.gamma','Picture.medianfilter','Picture.lowpass','Picture.highpass'),
+                       Default = Default
+    )
+    data <- data[1:2,]
+    if(input$filedemouse == 'QC'| input$filedemouse == 'checkpoint'){
+      data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='number' readonly='readonly'  value='",data$Default,"'>")
+      #       data[2,3] <- paste0("<input id='",data[2,3],"' class='shiny-bound-input' type='number' readonly='readonly' value='",gsub(1,'checked',data[3,3]),"'>")
+#       data[2,4] <- paste0("<input id='",data[2,4],"' class='shiny-bound-input' type='number' readonly='readonly' value='",gsub(1,'checked',data[3,4]),"'>")
+      data[,c(1,2)]
+    }else{
+      data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='number'  value='",data$Default,"'>")
+#       data$Value[3] <- paste0("<input id='",data$Value[3],"' class='shiny-bound-input' type='number'  value='",gsub(1,'checked',data$Default[3]),"'>")
+#       data$Value[4] <- paste0("<input id='",data$Value[4],"' class='shiny-bound-input' type='number'  value='",gsub(1,'checked',data$Default[4]),"'>")
+      data[,c(1,2)]
+    }
+    
+  },include.rownames=F,include.colnames=F, sanitize.text.function = function(y) y)
+  
+  output$TablePicturePreprocess.2 <-renderTable({
+    if(input$filedemouse == 'QC'){if('PicturePreprocess' %in% names(Pred.upload.model())){Default <- Pred.upload.model()$PicturePreprocess}else{Default <- c(1,1,0,0)}}
+    if(input$filedemouse == 'checkpoint'){if('PicturePreprocess' %in% names(checkpoint.data())){Default <- checkpoint.data()$PicturePreprocess}else{Default <- c(1,1,0,0)}}
+    if(input$filedemouse != 'QC' & input$filedemouse != 'checkpoint'){Default <- c(1,1,0,0)}
+    data <- data.frame(Option = c('Gamma','Medianfilter','Lowpass','Highpass'),
+                       Value = c('Picture.gamma','Picture.medianfilter','Picture.lowpass','Picture.highpass'),
+                       Default = Default
+    )
+    data <- data[3:4,]
+    data$Default <- gsub(T,'checked',data$Default)
+    if(input$filedemouse == 'QC' | input$filedemouse == 'checkpoint'){
+      data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='checkbox' readonly='readonly'  value='",data$Default,"'>")
+      data[,c(1,2)]
+    }else{
+      data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='checkbox'  value='",data$Default,"'>")
+      data[,c(1,2)]
+    }
+    
+  },include.rownames=F,include.colnames=F, sanitize.text.function = function(y) y)
+  
+  PicturePreprocess <- reactive({
+    c(input$Picture.gamma,input$Picture.medianfilter,input$Picture.lowpass,input$Picture.highpass)
+  })
 
   output$TableDimension <-renderTable({
     inFile <- inFile.photo()
@@ -315,13 +363,6 @@ shinyServer(function(input, output,session) {
                          Tolerance = rep(2,truc)
       )
     }
-#     inFile <- inFile.X()    
-#     if(is.null(inFile)){
-#       data <- data.mono.1.1()
-#       data <- data.frame(id = seq(dim(data)[1]),class = rep('unknow',dim(data)[1]),ref = rep('unknow',dim(data)[1]),info=rep('unknow',dim(data)[1]))
-#     }else{
-#       data <- read.xlsx(as.character(inFile[1,4]),sheetIndex=1)
-#     }
     inFile <- input$TableDimensionUpload
     if(!is.null(inFile)){
       data.saved <- read.xlsx(as.character(inFile[1,4]),sheetIndex=1)
@@ -407,7 +448,8 @@ shinyServer(function(input, output,session) {
     png(outfile, width=600, height=300)
     par(mar=c(5,4,0,0))
     plot(c(0,largeur),c(0,input$hauteur.mono), type='n',ylab="",xlab="",bty='n')
-    rasterImage(f.read.image(as.character(inFile[n.pic,4]),native=T,input$mono.Format.type,height=0),0 , 0, largeur, input$hauteur.mono)
+    rasterImage(f.read.image(as.character(inFile[n.pic,4]),native=T,input$mono.Format.type,height=0,PicturePreprocess()),
+                0 , 0, largeur, input$hauteur.mono)
     for(i in seq(nbr.band)){
       text(x=(dist.gauche+tolerance+(i-1)*(band+ecart)),y=input$hauteur.mono*0.9,labels=i,col="red",cex=1)
       abline(v=dist.gauche+tolerance+(i-1)*(band+ecart),col="red")
@@ -452,7 +494,7 @@ shinyServer(function(input, output,session) {
             ecart<-as.numeric(TableDimension()[n.pic,4])-band
             tolerance<-as.numeric(TableDimension()[n.pic,5])
           }
-          data.temp<-f.read.image(as.character(inFile[n.pic,4]),native=F,input$mono.Format.type,height=height)
+          data.temp<-f.read.image(as.character(inFile[n.pic,4]),native=F,input$mono.Format.type,height=height,PicturePreprocess())
           data.temp<-f.eat.image(data.temp,largeur,dist.gauche,band,ecart,tolerance)
           if(n.pic == 1){
             data <- data.temp
@@ -1196,7 +1238,8 @@ output$Train.down.model <- downloadHandler(
                        Preprocess.options = Preprocess.options(),
                        Preprocess.order = Preprocess.order(),
                        channel = selection.table(),
-                       Vertical.dim = c(dim(data.mono.2())[2],input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
+                       Vertical.dim = c(dim(data.mono.2())[2],input$hauteur.mono,input$Zf.mono,input$dist.bas.mono),
+                       PicturePreprocess = PicturePreprocess()
     ))
     save(list='data',file=con)
   }
@@ -1220,18 +1263,13 @@ output$DPE.pred.print <- renderPrint({
 })
 
 #### QC (or check point for the verticale dimension )####
-checkpoint.vert.dim <- reactive({
+checkpoint.data <- reactive({
   validate(
     need(input$checkpoint.1.upload != "", "Please upload your saved Rdata file")
   )
   inFile <- input$checkpoint.1.upload
   load(inFile$datapath)
-  return(data$Vertical.dim)
-})
-
-Pred.upload.model.vert.dim <- reactive({
-  data <- Pred.upload.model()
-  return(data$Vertical.dim)
+  return(data)
 })
 
 Pred.upload.model <- reactive({

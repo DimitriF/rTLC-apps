@@ -26,6 +26,8 @@ new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"
 if(length(new.packages)) install.packages(new.packages,repos="http://ftp.ussg.iu.edu/CRAN/")
 lapply(list.of.packages, require, character.only=TRUE)
 
-
+source("http://bioconductor.org/biocLite.R")
+biocLite()
+biocLite("EBImage")
 
 MAC.inverse=F
