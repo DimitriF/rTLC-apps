@@ -25,7 +25,7 @@ require("chemometrics");require("ggplot2");require("abind");require("plyr");requ
 require("prospectr");require("DiscriMiner");require("baseline");require("knitr");require('rmarkdown');
 require("xtable");require("ptw");require("dtw");
 require('d3heatmap');require('randomForest');require('kernlab');require('ipred');
-require('extraTrees');require('evtree')
+require('extraTrees');require('evtree');require('EBImage')
 
 # require('shinyRGL');require('rgl')
 
