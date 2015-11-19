@@ -590,10 +590,10 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                    checkboxInput('mono.knitr.prediction.summary.model','Print model summary',F)
                                    ),
                             column(4,h4('Download'),
-                                   downloadButton('mono.knitr.download','Download the report'),
-                                   radioButtons('reportformat', 'Document format', c('PDF', 'HTML', 'Word'),
-                                                inline = TRUE),
-                                   downloadButton('downloadReport')
+                                   downloadButton('mono.knitr.download','Download the report')#,
+#                                    radioButtons('reportformat', 'Document format', c('PDF', 'HTML', 'Word'),
+#                                                 inline = TRUE),
+#                                    downloadButton('downloadReport')
                                    )
                    ),
                    tabPanel('About/help',
