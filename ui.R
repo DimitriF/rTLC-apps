@@ -89,7 +89,8 @@ shinyUI(navbarPage("rTLC",
                                                         tableOutput('TableDimension'),
                                                         radioButtons('TableDimensionConvention','Convention to use in the Horizontal table',choices=c('Linomat','ATS-4'),selected='Linomat'),
                                                         downloadButton('TableDimensionSave','Save the Dimension table'),
-                                                        fileInput("TableDimensionUpload","Upload the saved table")
+                                                        fileInput("TableDimensionUpload","Upload the saved table"),
+                                                        plotOutput('TableDimensionPlot')
                                                         
                                                         # hotable("TableDimension")
                                                     )
@@ -622,10 +623,18 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                          hr(),
                                          p('Dimitri Fichou and Dr Petar Ristivojević contributed to this application. 
                                             Both of them discussed about design, visualisation tools and multivariate analysis. 
-                                            Mr Fichou designed all features of the application and Dr Petar Ristivojević contributed by ideas and feed backs.')
+                                            Mr Fichou designed all features of the application and Dr Petar Ristivojević contributed by ideas and feed backs.'),
+                                         hr(''),
+                                         p('This application was supported by Pr. Gertrud Morlock and her team at the Justus Liebig University of Giessen and is generously hosted on the university server.')
                                          ),
                                 tabPanel('Manual',
                                          downloadButton('manual.pdf','Download the pdf manual')
+                                         ),
+                                tabPanel('Global Pipeline',
+                                         imageOutput('help.global.pipeline')
+                                         ),
+                                tabPanel('Prediction Pipeline',
+                                         imageOutput('help.predict.pipeline')
                                          )
                               )
                             )

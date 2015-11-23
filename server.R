@@ -69,6 +69,20 @@ shinyServer(function(input, output,session) {
       file.copy('www/rTLC manual.pdf', file)
     }
   ) 
+  output$help.global.pipeline <- renderImage({
+    filename <- normalizePath(file.path('./www','Pipeline-total.jpg'))
+    
+    # Return a list containing the filename and alt text
+    list(src = filename,
+         alt = 'Alternate text')
+  },deleteFile = F)
+  output$help.predict.pipeline <- renderImage({
+    filename <- normalizePath(file.path('./www','Pipeline-Prediction.jpg'))
+    
+    # Return a list containing the filename and alt text
+    list(src = filename,
+         alt = 'Alternate text')
+  },deleteFile = F)
   
   output$checkpoint.1.download <- downloadHandler(
     filename = "rTLC_checkpoint_1.Rdata",
@@ -422,6 +436,60 @@ shinyServer(function(input, output,session) {
     data
   })
   
+  output$TableDimensionPlot <- renderImage({
+    outfile <- tempfile(fileext='.png')
+    png(outfile, width=1000, height=500)
+    
+    plot(x=seq(200),y=seq(1,100,length.out = 200),type='n',yaxt='n',xlab='Horizontale Dimensions',ylab='',main='Illustration of the chromatograms extraction')
+    text(x=50,y=90,labels='Plate width = 200 mm',cex=1,col='black')
+    arrows(x0=0, y0=95, x1 =200,col='black',code=3)
+    
+    text(x=100,y=30,labels='LINOMAT CONVENTION',cex=1.5)
+    text(x=100,y=25,labels='Calcul from the exterior of the band',cex=1.5)
+    abline(h=40)
+    abline(h=80)
+    segments(x0=20,y0=8,y1=8,x1=28,lwd=5)
+    segments(x0=38,y0=8,y1=8,x1=46,lwd=5)
+    segments(x0=56,y0=8,y1=8,x1=64,lwd=5)
+    segments(x0=74,y0=8,y1=8,x1=82,lwd=5)
+    segments(x0=92,y0=8,y1=8,x1=100,lwd=5)
+    segments(x0=110,y0=8,y1=8,x1=118,lwd=5)
+    segments(x0=128,y0=8,y1=8,x1=136,lwd=5)
+    segments(x0=146,y0=8,y1=8,x1=154,lwd=5)
+    segments(x0=164,y0=8,y1=8,x1=172,lwd=5)
+    text(x=20,y=5,labels='Left distance = 20 mm',cex=1,col='green')
+    arrows(x0=0, y0=8, x1 =20,col='green',code=3,length=0.1)
+    text(x=30,y=15,labels='Band width = 8 mm',cex=1,col='blue')
+    arrows(x0=20, y0=10, x1 =28,col='blue',code=3,length=0.1)
+    text(x=120,y=15,labels='Gap between band  = 10 mm',cex=1,col='red')
+    arrows(x0=100, x1=110, y0 =10,col='red',code=3,length=0.1)
+    text(x=100,y=70,labels='ATS-4 CONVENTION',cex=1.5)
+    text(x=100,y=65,labels='Calcul from the middle of the band',cex=1.5)
+    segments(x0=20,y0=48,y1=48,x1=28,lwd=5)
+    segments(x0=38,y0=48,y1=48,x1=46,lwd=5)
+    segments(x0=56,y0=48,y1=48,x1=64,lwd=5)
+    segments(x0=74,y0=48,y1=48,x1=82,lwd=5)
+    segments(x0=92,y0=48,y1=48,x1=100,lwd=5)
+    segments(x0=110,y0=48,y1=48,x1=118,lwd=5)
+    segments(x0=128,y0=48,y1=48,x1=136,lwd=5)
+    segments(x0=146,y0=48,y1=48,x1=154,lwd=5)
+    segments(x0=164,y0=48,y1=48,x1=172,lwd=5)
+    text(x=30,y=42,labels='First Application Position = 24 mm',cex=1,col='green')
+    arrows(x0=0, y0=45, x1 =24,col='green',code=3,length=0.1)
+    text(x=30,y=55,labels='Band length = 8 mm',cex=1,col='blue')
+    arrows(x0=20, y0=50, x1 =28,col='blue',code=3,length=0.1)
+    text(x=120,y=55,labels='Distance between tracks  = 18 mm',cex=1,col='red')
+    arrows(x0=96, x1=114, y0 =50,col='red',code=3,length=0.1)
+    segments(x0=166,y0=0,x1=166,y1=80,col='red')
+    segments(x0=170,y0=0,x1=170,y1=80,col='green')
+    text(x=185,y=60,labels='The software will \nextract the mean pixels\n between each red\n and green vertical line\non each \'channel\'\n of the picture')
+    text(x=185,y=20,labels='Tolerance = 2 mm\nRemove 2 mm from\n the exterior of the band')
+    dev.off()
+    list(src = outfile,
+         contentType = 'image/png',
+         alt = "This is alternate text")
+  }, deleteFile = TRUE)
+  
   output$select.image.redim.mono<-renderUI({
     truc <- paste(seq(nrow(inFile.photo())),inFile.photo()$name,sep="  -  ")
     selectizeInput("select.image.redim.mono","Plate choice",choices=truc)
@@ -456,7 +524,6 @@ shinyServer(function(input, output,session) {
       abline(v=dist.gauche-tolerance+band+(i-1)*(band+ecart),col="green")
       abline(h=input$Zf.mono,col='white')
       abline(h=input$dist.bas.mono,col='white')
-      abline(h=input$slider.subset.height,col=c('red','green'))
     }
     dev.off()
     list(src = outfile,
@@ -1333,26 +1400,12 @@ output$table2 <- renderTable({
 })
 
 ###############mono renderUI################
-## render a selectize input with the name of the columns as choice for the monovariate
-# output$select.column.mono<-renderUI({
-#   selectizeInput("column.mono","Choice of the variable to study",choices=colnames(dataX.mono.pre()))
-# })
-# output$mono.knitr.methode.choice<-renderUI({
-#   if(is.null(input$mono.knitr.methode.file)){
-#     selectizeInput("mono.knitr.methode.choice","Choice of the method",choices="None")
-#   }else{
-#     inFile<-input$mono.knitr.methode.file
-#     data<-c("None",getSheets(loadWorkbook(inFile$datapath)))
-#     selectizeInput("mono.knitr.methode.choice","Choice of the method",choices=data)
-#   }
-# })
 Truc.mono<-reactive({ 
   validate(
     need(input$Not.Use.1 != "", "Please visit the batch tab in Data Input to choose the data you want to Use")
   )
   data<-dataX.mono.pre.pre()
-#   apply(data,1,function(x){paste0("Band ",sep="  , ")
-  paste0("bande ",data[,1],"  , ",data[,2]," , ",data[,3]," , ",data[,4])
+  paste0("track ",data[,1],"  , ",data[,2]," , ",data[,3]," , ",data[,4])
 })
 output$choice.band.mono.bef.1 <- renderUI({
   selectizeInput('name.band.mono.bef.1', 'Choice of the band 1', choices=Truc.mono()[!Not.Use()],width="1000px")
