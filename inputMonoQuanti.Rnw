@@ -304,6 +304,29 @@ if(input$mono.knitr.prediction.summary.model == T){
     }
 }
 
+if(length(input$mono.knitr.prediction.validation) != 0){
+  for(i in input$mono.knitr.prediction.validation){
+    if(i == 'Cross-validation data'){
+        x <- Train.model()$pred$obs
+        y <- Train.model()$pred$pred
+      }
+      if(i == 'Training data'){
+        x <- Train.Dep()[Train.partition() == T]
+        y<-Train.prediction()[Train.partition() == T]
+      }
+      if(i == 'Test data'){
+        x <- Train.Dep()[Train.partition() == F]
+        y<-Train.prediction()[Train.partition() == F]
+      }
+    if(input$Trainproblem == 'classification'){
+      confusionMatrix(x,y)
+    }else{
+      plot(x=x,y=y,xlab='Observation',ylab='Prediction',
+       main=paste0('Regression Curve: ',i,'\n','R2 = ',cor(x,y),' - RMSE = ',RMSE(x,y)))
+    }
+  }
+}
+
 
 
 @

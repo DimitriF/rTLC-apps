@@ -1089,7 +1089,7 @@ Train.Ind <- reactive({
 })
 Train.Dep <- reactive({
   data <- dataX.mono.pre()[,input$Train.column]
-  if(input$Trainproblem == 'classification 2 class' | input$Trainproblem == 'classification multiclass'){
+  if(input$Trainproblem == 'classification'){
     data <- gsub(' ','_',data)
     data <- as.factor(data)
   }else{
@@ -1105,11 +1105,12 @@ output$Train.metric.positive.class <- renderUI({
   # selectizeInput('Train.metric.positive.class','Class to choose as the positive class',choices=unique(dataX.mono.pre()[,input$Train.column]))
 })
 output$Train.metric <- renderUI({
-  if(input$Trainproblem == 'classification 2 class'){
+  if(input$Trainproblem == 'classification' & length(unique(Train.Dep())) == 2){
     truc <- c('Accuracy','Kappa','Specificity','Sensitivity','Pos_Pred_Value','Neg_Pred_Value','Detection_Rate','Balanced_Accuracy')
   }
-  if(input$Trainproblem == 'classification multiclass'){
+  if(input$Trainproblem == 'classification'& length(unique(Train.Dep())) > 2){
     truc <- c('Accuracy','Kappa','Mean_Sensitivity','Mean_Specificity','Mean_Pos_Pred_Value','Mean_Neg_Pred_Value','Mean_Detection_Rate','Mean_Balanced_Accuracy')
+    names(truc) <- c('Accuracy','Kappa','Specificity','Sensitivity','Pos_Pred_Value','Neg_Pred_Value','Detection_Rate','Balanced_Accuracy')
   }
   if(input$Trainproblem == 'regression'){
     truc <- c('RMSE','Rsquared')
@@ -1172,7 +1173,7 @@ Train.model <- eventReactive(input$Train.go,{
 #                             summaryFunction = ',input$Traincontrolsummaryfunction,',allowParallel=T,verboseIter=T)
 #                            '
 #     ))) #
-    if(input$Trainproblem == 'classification 2 class' | input$Trainproblem == 'classification multiclass'){
+    if(input$Trainproblem == 'classification'){
       control <- trainControl(method = input$Train.control.method,
                               number=input$Train.tunning.CV,
                               repeats=input$Train.tunning.repeat,
@@ -1188,7 +1189,6 @@ Train.model <- eventReactive(input$Train.go,{
                               summaryFunction = defaultSummary,
                               allowParallel=T,verboseIter=T,returnData=F)
     }
-    
     set.seed(1)
     model <- train(Dep ~. , data = training,
                    method=input$Train.model.algo,
@@ -1204,10 +1204,6 @@ Train.prediction <- reactive({
   data <- data.frame(Ind = Train.Ind(), Dep = Train.Dep())
   predict(Train.model(),newdata=data)
 })
-output$Train.regression.curve <- renderPlot({
-  model <- Train.model()
-  plot(x=model$pred$pred,y=model$pred$obs)
-})
 
 output$Train.pred.table <- renderDataTable({
   cbind(dataX.mono.pre(),Prediction = Train.prediction(), Training = Train.partition())
@@ -1215,14 +1211,55 @@ output$Train.pred.table <- renderDataTable({
 output$Train.validation <- renderPrint({
   print(Train.model())
 })
-output$Train.valid.table <- renderTable({
-  table(Train.Dep()[Train.partition() %in% input$Train.valid.table.use],
-                  Train.prediction()[Train.partition() %in% input$Train.valid.table.use])
+
+output$TrainValidMetricsClassTable <- renderTable({
+  if(input$TrainValidMetricsUse == 'Cross-validation data'){
+    x <- Train.model()$pred$obs
+    y <- Train.model()$pred$pred
+  }
+  if(input$TrainValidMetricsUse == 'Training data'){
+    x <- Train.Dep()[Train.partition() == T]
+    y<-Train.prediction()[Train.partition() == T]
+  }
+  if(input$TrainValidMetricsUse == 'Test data'){
+    x <- Train.Dep()[Train.partition() == F]
+    y<-Train.prediction()[Train.partition() == F]
+  }
+  table(x,y)
 })
-output$Train.valid.print <- renderPrint({
-  confusionMatrix(Train.Dep()[Train.partition() %in% input$Train.valid.table.use],
-                  Train.prediction()[Train.partition() %in% input$Train.valid.table.use])
+output$TrainValidMetricsClassPrint <- renderPrint({
+  if(input$TrainValidMetricsUse == 'Cross-validation data'){
+    x <- Train.model()$pred$obs
+    y <- Train.model()$pred$pred
+  }
+  if(input$TrainValidMetricsUse == 'Training data'){
+    x <- Train.Dep()[Train.partition() == T]
+    y<-Train.prediction()[Train.partition() == T]
+  }
+  if(input$TrainValidMetricsUse == 'Test data'){
+    x <- Train.Dep()[Train.partition() == F]
+    y<-Train.prediction()[Train.partition() == F]
+  }
+  confusionMatrix(x,y)
 })
+output$TrainValidMetricsRegPlot <- renderPlot({
+  if(input$TrainValidMetricsUse == 'Cross-validation data'){
+    x <- Train.model()$pred$obs
+    y <- Train.model()$pred$pred
+  }
+  if(input$TrainValidMetricsUse == 'Training data'){
+    x <- Train.Dep()[Train.partition() == T]
+    y<-Train.prediction()[Train.partition() == T]
+  }
+  if(input$TrainValidMetricsUse == 'Test data'){
+    x <- Train.Dep()[Train.partition() == F]
+    y<-Train.prediction()[Train.partition() == F]
+  }
+  plot(x=x,y=y,xlab='Observation',ylab='Prediction',
+       main=paste0('Regression Curve: ',input$TrainValidMetricsUse,'\n','R2 = ',cor(x,y),' - RMSE = ',RMSE(x,y)))
+})
+
+
 output$Train.tunning.plot <- renderPlot({
   print(plot(Train.model()))
 })

@@ -508,10 +508,10 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                    tabPanel("Predictive statisitcs",
                             sidebarLayout(
                               sidebarPanel(width = 3,
-                                           sliderInput('Train.partition','Part of data to train with (the preprocess will be rerun if changed)',min=0,max=1,value = 1),
+                                           sliderInput('Train.partition','Part of data to train with (the preprocess will be rerun if changed)',min=0,max=1,value = 0.75),
                                            uiOutput('Train.model.algo'),
-                                           radioButtons('Trainproblem','Type',choices=c('classification 2 class','classification multiclass','regression'),selected='classification 2 class'),
                                            uiOutput("Train.column"),
+                                           radioButtons('Trainproblem','Type',choices=c('classification','regression'),selected='classification'),
                                            # checkboxGroupInput("col.Pred","Choice of the channel(s)",choices=c("red"=1,"green"=2,"blue"=3,"grey"=4),select=seq(4)),
                                            hr(),
                                            div(class="btn btn-default action-button shiny-bound-input",actionButton('Train.go','Train')),
@@ -536,14 +536,17 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                              )
                                            )
                                   ),
-                                  tabPanel("Confusion Matrix (classification)",
-                                           checkboxGroupInput('Train.valid.table.use','Data to use',choices=c('Training data'=T,'Test data'=F),selected=F),
-                                           tableOutput('Train.valid.table'),
-                                           verbatimTextOutput('Train.valid.print')
+                                  tabPanel('Validation metrics',
+                                           radioButtons('TrainValidMetricsUse','Data to use',choices=c('Cross-validation data','Training data','Test data'),selected='Test data'),
+                                           conditionalPanel(condition = "input.Trainproblem == 'classification'",
+                                                            tableOutput('TrainValidMetricsClassTable'),
+                                                            verbatimTextOutput('TrainValidMetricsClassPrint')
                                            ),
-                                  tabPanel("Prediction curve (regression)",
-                                           plotOutput('Train.regression.curve',height="600px")
-                                  ),
+                                           conditionalPanel(condition = "input.Trainproblem == 'regression'",
+                                                            plotOutput('TrainValidMetricsRegPlot')
+                                           )
+                                           
+                                           ),
                                   tabPanel("Prediction table",
                                            dataTableOutput('Train.pred.table')
                                            ),
@@ -594,7 +597,8 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                    checkboxInput("mono.knitr.heatmap.plot", "Print the heatmap plot", FALSE)
                                    ),
                             column(2,h4('Predictive Statistics'),
-                                   checkboxInput('mono.knitr.prediction.summary.model','Print model summary',F)
+                                   checkboxInput('mono.knitr.prediction.summary.model','Print model summary',F),
+                                   checkboxGroupInput('mono.knitr.prediction.validation','Print the validation results for ',choices=c('Cross-validation data','Training data','Test data'))
                                    ),
                             column(4,h4('Download'),
                                    downloadButton('mono.knitr.download','Download the report')#,
