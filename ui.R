@@ -85,7 +85,7 @@ shinyUI(navbarPage("rTLC",
 #                                                         checkboxInput('Picture.lowpass','Low pass filter',F),
 #                                                         checkboxInput('Picture.highpass','High pass filter',F)
                                                     ),
-                                                    shinydashboard::box(title="Horizontale Dimensions (mm)",collapsible = F,width=12,height=500,
+                                                    shinydashboard::box(title="Horizontal Dimensions (mm)",collapsible = F,width=12,height=500,
                                                         tableOutput('TableDimension'),
                                                         radioButtons('TableDimensionConvention','Convention to use in the Horizontal table',choices=c('Linomat','ATS-4'),selected='Linomat'),
                                                         downloadButton('TableDimensionSave','Save the Dimension table'),
@@ -110,11 +110,11 @@ shinyUI(navbarPage("rTLC",
                                                     plotOutput("plot.v.mono.bef.2")
                                                   )
                                          ),
-                                         tabPanel("Band Comparaison",
+                                         tabPanel("Band Comparison",
                                                   uiOutput("choice.band.m.comp.1"),
                                                   imageOutput("image.comparaison.1",height=500)
                                          ),
-                                         tabPanel("Chromatograms comparaison",
+                                         tabPanel("Chromatograms comparison",
                                                   uiOutput('choice.band.mono.bef.tot'),
                                                   plotOutput("plot.v.mono.bef.tot")
                                          ),
@@ -130,7 +130,7 @@ shinyUI(navbarPage("rTLC",
                    tabPanel("Data preprocessing",
                             sidebarLayout(
                               sidebarPanel(
-                                h4("Here you can choose different preprocessing of the data before start the analysis."),
+                                h4("Here you can choose different data preprocessing before starting the analysis."),
                                 tags$hr(),
                                 selectizeInput('Preprocess.order','Preprocess choice (order is important)',
                                                choices=c('Smoothing','Warping','Standard.Normal.Variate',
@@ -237,7 +237,7 @@ shinyUI(navbarPage("rTLC",
                                            uiOutput('choice.band.mono.aft.2'),
                                            plotOutput("plot.v.mono.aft.2")
                                   ),
-                                  tabPanel("Chromatograms comparaison",
+                                  tabPanel("Chromatograms comparison",
                                            uiOutput('choice.band.mono.aft.tot'),
                                            plotOutput("plot.v.mono.aft.tot")
                                   )
@@ -521,9 +521,9 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                               ),
                               mainPanel(width=9,
                                 tabsetPanel(
-                                  tabPanel("Tunning Options",
+                                  tabPanel("Tuning Options",
                                            fluidRow(
-                                             box(title='Generale Options',width=3,collapsible = F,
+                                             box(title='General Options',width=3,collapsible = F,
                                                  selectizeInput('Train.control.method','Validation method for the tunning',
                                                                 choices=c('boot', 'repeatedcv', 'LOOCV'),
                                                                 selected='repeatedcv'),
@@ -557,7 +557,7 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                   tabPanel('Model Summary',
                                            verbatimTextOutput('Train.validation')
                                            ),
-                                  tabPanel('Tunning Curve',
+                                  tabPanel('Tuning Curve',
                                            plotOutput('Train.tunning.plot')
                                            ),
                                   tabPanel('DPE',
@@ -583,7 +583,8 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                    checkboxInput("monoknitrpicture", "Print the analysis picture(s)", TRUE),
                                    checkboxInput("mono.knitr.batch.simple", "Print the batch", TRUE),
                                    checkboxInput("mono.knitr.batch.pred", "Print the batch with the prediction (QC only)", FALSE),
-                                   selectizeInput("mono.knitr.plot.brut","Print the chromatograms before process",choices=c("None","2","all"),selected="None")
+                                   selectizeInput("mono.knitr.plot.brut","Print the chromatograms before process",choices=c("None","2","all"),selected="None"),
+                                   checkboxInput('mono.knitr.band.comp','Print the band comparison plot',F)
                                    ),
                             column(2,h4('Data Preprocessing and Variable Selection'),
                                    checkboxInput("mono.knitr.preprocess","Print the summary of the preprocess",F),

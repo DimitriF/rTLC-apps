@@ -157,7 +157,7 @@ if(input$mono.knitr.plot.brut == "all"){
     }
     truc <- cbind(name, value)
     rownames(truc) <- seq(nrow(truc))
-    print(xtable(truc),include.rownames=F,colnames=F)
+    print(xtable(truc, caption = 'Preprocessing Options'),include.rownames=F,colnames=F)
   }
 @
 
@@ -285,7 +285,7 @@ if(input$mono.knitr.pca.score.loading.split == T){
 <<echo = FALSE,results = 'asis'>>=
 ## model summary
 if(input$mono.knitr.prediction.summary.model == T | input$mono.knitr.var.select ==T){
-  print(xtable(selection.table()),include.rownames=F,colnames=T)
+  print(xtable(selection.table(), caption = 'Variables Selection'),include.rownames=F,colnames=T)
 }
 
 
@@ -319,7 +319,7 @@ if(length(input$mono.knitr.prediction.validation) != 0){
         y<-Train.prediction()[Train.partition() == F]
       }
     if(input$Trainproblem == 'classification'){
-      confusionMatrix(x,y)
+      print(confusionMatrix(x,y))
     }else{
       plot(x=x,y=y,xlab='Observation',ylab='Prediction',
        main=paste0('Regression Curve: ',i,'\n','R2 = ',cor(x,y),' - RMSE = ',RMSE(x,y)))
