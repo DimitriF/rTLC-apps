@@ -70,7 +70,7 @@ if(input$mono.knitr.file.name == T){
       rasterImage(f.read.image(as.character(inFile[n.pic,4]),native=T,format=input$mono.Format.type),0 , 0, largeur, 100)
       for(j in seq(nbr.band)){
         inc <- inc+1
-        text(x=(dist.gauche+tolerance+(j-1)*(band+ecart)),y=90,labels=dataX.mono.pre.pre()[inc,1],col="red",cex=1)
+        text(x=(dist.gauche+tolerance+(j-1)*(band+ecart)),y=90,labels=dataX.edited()[inc,1],col="red",cex=1)
       }
     }
   }
@@ -184,7 +184,7 @@ if(input$mono.knitr.plot.net == "all"){
 
 @
 
-<<echo = FALSE, results = 'asis',fig.height=8,fig.width=8>>=
+<<echo = FALSE, results = 'asis',fig.height=8,fig.width=8,error=FALSE,message=FALSE>>=
 
 ### PCA
 if(input$mono.knitr.pca.plot == T){

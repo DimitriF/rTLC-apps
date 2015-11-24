@@ -18,9 +18,10 @@
 
 #### rTLC ######
 
-list.of.packages <- c("jpeg","png",'caret','klaR','xlsx',"ChemometricsWithR","gplots","kohonen","devtools","chemometrics",
+list.of.packages <- c("jpeg","png",'caret','klaR','xlsx',"ChemometricsWithR","gplots","kohonen",'memoise',"devtools","chemometrics",
                       "ggplot2","abind","plyr",'dplyr',"prospectr","DiscriMiner","baseline","knitr","xtable",'rmarkdown',
-                      "ptw","dtw",'shinyAce','shinydashboard','d3heatmap','randomForest','kernlab','ipred','extraTrees','evtree'
+                      "ptw","dtw",'shinyAce','shinydashboard','d3heatmap','randomForest','kernlab','ipred','extraTrees','evtree',
+                      'htmltools','httpuv','mime','MASS','pls','rpart','e1071'
 )
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,repos="http://ftp.ussg.iu.edu/CRAN/")

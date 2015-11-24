@@ -197,57 +197,38 @@ shinyServer(function(input, output,session) {
       }else{
         data <- read.xlsx(as.character(inFile[1,4]),sheetIndex=1)
       }
-    }
-    data$id <- seq(nrow(data))
-    data
-  })
-  dataX <- reactive({
-    validate(
-      need(input$Not.Use.1 != "", "Please visit the batch tab in Data Input to choose the data you want to Use")
-    )
-    if(input$filedemouse == 'checkpoint'){
-      validate(
-        need(input$checkpoint.1.upload != "", "Please upload your Rdata file")
-      )
-      inFile <- input$checkpoint.1.upload
-      load(inFile[1,4])
-      data <- data[[2]]
-      data$id <- seq(nrow(data))
-    }else{
-      inFile <- inFile.X()    
-      if(is.null(inFile)){
-        data <- data.mono.1.1()
-        data <- data.frame(id = seq(dim(data)[1]),class = rep('unknow',dim(data)[1]),ref = rep('unknow',dim(data)[1]),info=rep('unknow',dim(data)[1]))
-      }else{
-        data <- read.xlsx(as.character(inFile[1,4]),sheetIndex=1)
+      if(which(colnames(data) == 'id') != 1){
+        colnames(data)[which(colnames(data) == 'id')] <- 'id2'
+      }
+      if(!'id' %in% colnames(data)){
+        data <- cbind(id=seq(nrow(data)),data)
       }
     }
-    data.return <- data.frame()
+    # data$id <- seq(nrow(data))
+    rownames(data) <- seq(nrow(data))
+    data
+  })
+  dataX.edited<-reactive({
+    data <- dataX.editable()
     for(j in c(2:ncol(data))){
       truc <- c();for(i in seq(nrow(data))){truc <- c(truc,input[[paste0(colnames(data)[j],".",i)]])}
       data[,j] <- truc
     }
-    data$id <- seq(nrow(data))
-    data
-  })
-  ################ dataX.mono   ##########
-  dataX.mono.pre.pre<-reactive({ 
-    data <- dataX()
     validate(
-      need(length(colnames(data)) >= 4, "Your batch must contain at least 4 columns"),
+      need(length(colnames(data)) >= 2, "Your batch must contain at least 1 columns"),
       need(colnames(data)[1] == "id", "The first column of your batch is not 'id'"),
       need(data[,1] == seq(1:nrow(data)) , "Your id column is not a sequence of number starting from 1")
     )
     data
   })
   dataX.mono.pre<-reactive({ 
-    data<-dataX.mono.pre.pre()
+    data<-dataX.edited()
     return(data[!Not.Use(),])
   })
   output$table1 <-renderTable({
       data <- dataX.editable()
       validate(
-        need(length(colnames(data)) >= 4, "Your batch must contain at least 4 columns"),
+        need(length(colnames(data)) >= 2, "Your batch must contain at least 1 columns"),
         need(colnames(data)[1] == "id", "The first column of your batch is not 'id'"),
         need(data[,1] == seq(1:nrow(data)) , "Your id column is not a sequence of number starting from 1")
       )
@@ -258,13 +239,20 @@ shinyServer(function(input, output,session) {
     data <- data.frame(cbind(Not.Use,data))
     return(data)
   }, sanitize.text.function = function(y) y)
-  
+  output$batch.Truc.mono <- renderUI({
+    data <- colnames(dataX.edited())
+    if(length(data) <= 4){
+      checkboxGroupInput('batch.Truc.mono','Information to include in the track chromatograms plot',choices=data[2:length(data)],selected=data[2:length(data)],inline=T)
+    }else{
+      checkboxGroupInput('batch.Truc.mono','Information to include in the track chromatograms plot',choices=data[2:length(data)],selected=data[2:4],inline=T)
+    }
+  })
   output$batch.filter <- renderUI({
-    data <- dataX.editable()
+    data <- dataX.edited()
     truc <- tagList()
     for(i in c(2:ncol(data))){
       truc <- tagAppendChild(truc,
-                             selectizeInput(paste0('batch.filter.',i),paste0(colnames(data)[i],' Column filter. Keep only selected, if none, keep all.'),multiple=T,choices=unique(as.character(data[,i])))
+                             selectizeInput(paste0('batch.filter.',i),colnames(data)[i],multiple=T,choices=unique(as.character(data[,i])))
       )
     }
     truc
@@ -275,7 +263,7 @@ shinyServer(function(input, output,session) {
       need(input$Not.Use.1 != "", "Please visit the batch tab in Data Input to choose the data you want to Use")
     )
     Not.Use <- c() 
-    for(i in seq(nrow(dataX.mono.pre.pre()))){
+    for(i in seq(nrow(dataX.edited()))){
       Not.Use <- c(Not.Use, input[[paste0("Not.Use.",i)]])
     }
     data <- dataX.editable()
@@ -576,7 +564,7 @@ shinyServer(function(input, output,session) {
   })
   data.mono.1 <- reactive({
     data <- data.mono.1.1()
-    dataX<-dataX()
+    dataX<-dataX.edited()
     validate(
       need(dim(data)[1] == nrow(dataX), "The number of chromatograms extracted do not match the number of row in your batch, please check your batch or your dimension table")
     )
@@ -608,11 +596,7 @@ Train.partition <- reactive({
       Smoothing <- list(window.size = input$window.size,poly.order=input$poly.order,diff.order=input$diff.order)
       if(input$warpmethod == 'ptw'){
         Warping <- list(warpmethod = input$warpmethod,
-                        ptw.warp.ref = input$ptw.warp.ref,
-                        ptw.init.coef=input$ptw.init.coef,
-                        ptw.warp.type=input$ptw.warp.type,
-                        ptw.optim.crit=input$ptw.optim.crit,
-                        ptw.trwdth=input$ptw.trwdth)
+                        ptw.warp.ref = input$ptw.warp.ref)
       }
       if(input$warpmethod == 'dtw'){
         Warping <- list(warpmethod = input$warpmethod,
@@ -647,9 +631,11 @@ Train.partition <- reactive({
 #       validate(
 #         need(!Not.Use()[input$ptw.warp.ref], "the reference id for the warping is not in the batch")
 #       )
-      validate(
-        need(Train.partition()[input$ptw.warp.ref], "the reference id for the warping is not in the training set")
-      )
+      if('warping' %in% Preprocess.order()){
+        validate(
+          need(Train.partition()[input$ptw.warp.ref], "the reference id for the warping is not in the training set")
+        )
+      }
       withProgress(message = "Work in Progress", value=0, {
         data<-data.mono.2()
         data <- f.preprocess(data,preprocess.order = Preprocess.order(),preprocess.option = Preprocess.options(),
@@ -695,6 +681,9 @@ Train.partition <- reactive({
   selection.table <- reactive({
     if(input$filedemouse != 'QC'){
       n <- 12
+      validate(
+        need(!is.null(input[[paste0('VS_slider_',1)]]), "Please visit the variable selection table")
+      )
       use <- c();for(i in seq(n)){use <- c(use,input[[paste0('VS_check_',i)]])}
       channel <- c();for(i in seq(n)){channel <- c(channel,input[[paste0('VS_select_',i)]])}
       start <- c();for(i in seq(n)){start <- c(start,input[[paste0('VS_slider_',i)]][1])}
@@ -852,14 +841,6 @@ output$image.comparaison.1 <- renderPlot({
 # ################ model pca ##########
 model.pca<-reactive({
   data <- data.mono.4()
-#   channel <- as.numeric(input$col.pca)
-#   validate(
-#     need(length(channel) != 0, "At least one channel must be used")
-#   )
-#   hauteur<-input$hauteur.mono
-#   dist.bas<-input$dist.bas.mono
-#   Zf <- input$Zf.mono
-#   data <- f.rebind(data=data,channel = channel,hauteur = hauteur,dist.bas=dist.bas,Zf=Zf)
   PCA(as.matrix(data))
 })
 # ################# output$pca.plot.1 ################# 
@@ -1092,14 +1073,6 @@ output$select.col.plot.cluster.1<-renderUI({
 ################# output$heatmap #################
 data.heatmap<-reactive({
   data <- data.mono.4()
-#   channel <- as.numeric(input$col.heatmap.1)
-#   validate(
-#     need(length(channel) != 0, "At least one channel must be used")
-#   )
-#   hauteur<-input$hauteur.mono
-#   dist.bas<-input$dist.bas.mono
-#   Zf <- input$Zf.mono
-#   data <- f.rebind(data=data,channel = channel,hauteur = hauteur,dist.bas=dist.bas,Zf=Zf)
   return(data)
 })
 output$plot.heatmap.1 <- renderPlot({
@@ -1145,14 +1118,6 @@ output$Train.model.algo.info <- renderPrint({
 
 Train.Ind <- reactive({
   data <- data.mono.4()
-#   channel <- as.numeric(input$col.Pred)
-#   validate(
-#     need(length(channel) != 0, "At least one channel must be used")
-#   )
-#   hauteur<-input$hauteur.mono
-#   dist.bas<-input$dist.bas.mono
-#   Zf <- input$Zf.mono
-#   data <- f.rebind(data=data,channel = channel,hauteur = hauteur,dist.bas=dist.bas,Zf=Zf)
   return(as.matrix(data))
 })
 Train.Dep <- reactive({
@@ -1170,7 +1135,6 @@ Train.Dep <- reactive({
 })
 output$Train.metric.positive.class <- renderUI({
   h5(paste0('Positive class will be: ',dataX.mono.pre()[1,input$Train.column]))
-  # selectizeInput('Train.metric.positive.class','Class to choose as the positive class',choices=unique(dataX.mono.pre()[,input$Train.column]))
 })
 output$Train.metric <- renderUI({
   if(input$Trainproblem == 'classification' & length(unique(Train.Dep())) == 2){
@@ -1405,8 +1369,8 @@ Truc.mono<-reactive({
   validate(
     need(input$Not.Use.1 != "", "Please visit the batch tab in Data Input to choose the data you want to Use")
   )
-  data<-dataX.mono.pre.pre()
-  paste0("track ",data[,1],"  , ",data[,2]," , ",data[,3]," , ",data[,4])
+  data<-dataX.edited()[,c('id',input$batch.Truc.mono)]
+  paste0("track ",apply(data,1,paste0,collapse=' - '))
 })
 output$choice.band.mono.bef.1 <- renderUI({
   selectizeInput('name.band.mono.bef.1', 'Choice of the band 1', choices=Truc.mono()[!Not.Use()],width="1000px")

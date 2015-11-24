@@ -1,6 +1,7 @@
 name: rTLC
 account: dimitrif
 server: shinyapps.io
-bundleId: 312388
+appId: 67425
+bundleId: 318081
 url: https://dimitrif.shinyapps.io/rTLC
-when: 1447753442.03107
+when: 1448363060.09538
