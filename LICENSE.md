@@ -1,4 +1,4 @@
-Shiny.HPTLC
+rTLC
 ===========
 Copyright (C) {2014}  {Fichou Dimitri}
 {dimitrifichou@laposte.net}

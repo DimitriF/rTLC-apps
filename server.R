@@ -429,8 +429,9 @@ shinyServer(function(input, output,session) {
     png(outfile, width=1000, height=500)
     
     plot(x=seq(200),y=seq(1,100,length.out = 200),type='n',yaxt='n',xlab='Horizontale Dimensions',ylab='',main='Illustration of the chromatograms extraction')
-    text(x=50,y=90,labels='Plate width = 200 mm',cex=1,col='black')
-    arrows(x0=0, y0=95, x1 =200,col='black',code=3)
+    text(x=50,y=85,labels='Plate width = 200 mm',cex=1,col='black')
+    text(x=100,y=97,labels='Unnecessary cropping will result in false horizontal dimensions and reproductibility problems',cex=1.5,col='red')
+    arrows(x0=0, y0=90, x1 =200,col='black',code=3)
     
     text(x=100,y=30,labels='LINOMAT CONVENTION',cex=1.5)
     text(x=100,y=25,labels='Calculation from the exterior of the band',cex=1.5)
@@ -1436,5 +1437,6 @@ output$downloadReport <- downloadHandler(
 output$sessionInfo <- renderPrint({
   sessionInfo()
 })
+
 
 })
