@@ -1371,7 +1371,7 @@ Truc.mono<-reactive({
     need(input$Not.Use.1 != "", "Please visit the batch tab in Data Input to choose the data you want to Use")
   )
   data<-dataX.edited()[,c('id',input$batch.Truc.mono)]
-  paste0("track ",apply(data,1,paste0,collapse=' - '))
+  paste0("track ",apply(data,1,paste0,collapse='  - '))
 })
 output$choice.band.mono.bef.1 <- renderUI({
   selectizeInput('name.band.mono.bef.1', 'Choice of the band 1', choices=Truc.mono()[!Not.Use()],width="1000px")
