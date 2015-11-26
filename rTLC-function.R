@@ -167,44 +167,55 @@ f.eat.image<-function(image,largeur,dist.gauche,band,ecart,tolerance){
   data <- abind(data,apply(data,1:2,mean),along=3)
   return(data)
 }
-f.plot.array<-function(data,id,label,hauteur,Zf,dist.bas,reconstruct=T,xlim=c(-dist.bas/(Zf-dist.bas),(hauteur-dist.bas)/(Zf-dist.bas)),inverse=F){
+f.plot.array<-function(data,id,label,hauteur,Zf,dist.bas,reconstruct=T,xlim=c(-dist.bas/(Zf-dist.bas),(hauteur-dist.bas)/(Zf-dist.bas)),inverse=F,ylim.raster=1.3){
   if(reconstruct==T){
-    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[as.character(id),,1]),
-         ylim=c(0,1.3),xlim=xlim,main=label[id],xlab='',ylab="",
+    if(is.null(label)){
+      plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,1]),
+           ylim=c(0,ylim.raster),xlim=xlim,xlab='',ylab="",
+           type="n")
+      par(new=T)
+    }else{
+      plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,1]),
+           ylim=c(0,ylim.raster),xlim=xlim,main=label[id],xlab='',ylab="",
+           type="l",col="red")
+      par(new=T)
+    }
+    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,1]),
+         ylim=c(0,ylim.raster),xlim=xlim,xlab='',ylab="",
          type="l",col="red")
     par(new=T)
-    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[as.character(id),,2]),
-         ylim=c(0,1.3),xlim=xlim,xlab='',ylab='',
+    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,2]),
+         ylim=c(0,ylim.raster),xlim=xlim,xlab='',ylab='',
          type="l",col="green")
     par(new=T)
-    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[as.character(id),,3]),
-         ylim=c(0,1.3),xlim=xlim,xlab='',ylab='',
+    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,3]),
+         ylim=c(0,ylim.raster),xlim=xlim,xlab='',ylab='',
          type="l",col="blue")
     par(new=T)
-    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[as.character(id),,4]),
-         ylim=c(0,1.3),xlim=xlim,xlab='',ylab='',
+    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,4]),
+         ylim=c(0,ylim.raster),xlim=xlim,xlab='',ylab='',
          type="l",col="black")
     if(inverse==F){
-      data.plot<-round(array(data[as.character(id),,c(1,2,3)],dim=c(1,dim(data)[2],3))*256)/256
+      data.plot<-round(array(data[id,,c(1,2,3)],dim=c(1,dim(data)[2],3))*256)/256
       rasterImage(data.plot,(hauteur-dist.bas)/(Zf-dist.bas) , 1.1, -dist.bas/(Zf-dist.bas), 1.3)
     }else{
-      data.plot<-round(array(data[as.character(id),dim(data)[2]:1,c(1,2,3)],dim=c(1,dim(data)[2],3))*256)/256
+      data.plot<-round(array(data[id,dim(data)[2]:1,c(1,2,3)],dim=c(1,dim(data)[2],3))*256)/256
       rasterImage(data.plot, (hauteur-dist.bas)/(Zf-dist.bas) , 1.1, -dist.bas/(Zf-dist.bas), 1.3)
     }
   }else{
-    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[as.character(id),,1]),
+    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,1]),
          ylim=c(min(data),max(data)),xlim=xlim,main=label[id],xlab='',ylab='',
          type="l",col="red")
     par(new=T)
-    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[as.character(id),,2]),
+    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,2]),
          ylim=c(min(data),max(data)),xlim=xlim,xlab='',ylab='',
          type="l",col="green")
     par(new=T)
-    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[as.character(id),,3]),
+    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,3]),
          ylim=c(min(data),max(data)),xlim=xlim,xlab='',ylab='',
          type="l",col="blue")
     par(new=T)
-    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[as.character(id),,4]),
+    plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,4]),
          ylim=c(min(data),max(data)),xlim=xlim,xlab='',ylab='',
          type="l",col="black")
   }

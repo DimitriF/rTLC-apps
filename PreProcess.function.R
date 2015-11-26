@@ -165,7 +165,6 @@ do.dtw <- function(data,ref,training.data,split=T){
   return(data)
 }
 do.ptw <- function(data,ref,training.data){
-  ref<-as.character(ref)
   data[,,1]<-ptw(ref = training.data[ref,,1],data[,,1])$warped.sample
   data[,,2]<-ptw(ref = training.data[ref,,2],data[,,2])$warped.sample
   data[,,3]<-ptw(ref = training.data[ref,,3],data[,,3])$warped.sample

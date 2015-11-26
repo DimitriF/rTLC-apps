@@ -118,6 +118,10 @@ shinyUI(navbarPage("rTLC",
                                                   uiOutput('choice.band.mono.bef.tot'),
                                                   plotOutput("plot.v.mono.bef.tot")
                                          ),
+                                         tabPanel('Image reconstruction',
+                                                  uiOutput("select.image.reconstruct"),
+                                                  plotOutput('image.reconstruct')
+                                                  ),
                                          tabPanel("Prediction (QC only)",
                                                   tableOutput("table2")
                                          )
@@ -158,7 +162,8 @@ shinyUI(navbarPage("rTLC",
                                                                                  href="http://www.inside-r.org/packages/cran/ptw/docs/ptw")
                                                                    ),
                                                                    #p("The best results I had was with respectively : ref=1, 'c(0,1,0)',individual,WCC,20 "),
-                                                                   numericInput("ptw.warp.ref","id of the reference",1)#,
+                                                                   uiOutput('ptw.warp.ref')
+                                                                   # numericInput("ptw.warp.ref","id of the reference",1)#,
                                                                    #textInput("ptw.init.coef","init.coef","c(0,1,0)"),
                                                                    #selectizeInput("ptw.warp.type","warp.type",choices=c("individual", "global"),selected="global"),
                                                                    #selectizeInput("ptw.optim.crit","optim.crit",choices=c("WCC", "RMS"),selected="WCC"),
@@ -168,7 +173,8 @@ shinyUI(navbarPage("rTLC",
                                                                    helpText(   a("Click Here for help with the DTW funtion",target="_blank",     
                                                                                  href="http://www.inside-r.org/packages/cran/dtw/docs/dtw")
                                                                    ),
-                                                                   numericInput("ptw.warp.ref","id of the reference",1),
+                                                                   uiOutput('ptw.warp.ref.bis'),
+                                                                   # numericInput("ptw.warp.ref","id of the reference",1),
                                                                    checkboxInput('dtw.split','Do the alignment on the 4 channels separatly',F)
                                                   )
                                                   ),

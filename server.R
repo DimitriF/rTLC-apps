@@ -197,7 +197,7 @@ shinyServer(function(input, output,session) {
       }else{
         data <- read.xlsx(as.character(inFile[1,4]),sheetIndex=1)
       }
-      if(which(colnames(data) == 'id') != 1){
+      if(colnames(data)[1] != 'id' & 'id' %in% colnames(data)){
         colnames(data)[which(colnames(data) == 'id')] <- 'id2'
       }
       if(!'id' %in% colnames(data)){
@@ -485,6 +485,9 @@ shinyServer(function(input, output,session) {
     selectizeInput("select.image.redim.mono","Plate choice",choices=truc)
   })
   output$image.redim.mono <- renderImage({
+    validate(
+      need(input$Zf.mono != 0, "The retention front could not be 0 mm, please verify the Verticale dimension table")
+    )
     n.pic<-as.numeric(substr(input$select.image.redim.mono,1,3))
     inFile <- inFile.photo()
     if(input$TableDimensionConvention == 'Linomat'){
@@ -512,6 +515,7 @@ shinyServer(function(input, output,session) {
       text(x=(dist.gauche+tolerance+(i-1)*(band+ecart)),y=input$hauteur.mono*0.9,labels=i,col="red",cex=1)
       abline(v=dist.gauche+tolerance+(i-1)*(band+ecart),col="red")
       abline(v=dist.gauche-tolerance+band+(i-1)*(band+ecart),col="green")
+      
       abline(h=input$Zf.mono,col='white')
       abline(h=input$dist.bas.mono,col='white')
     }
@@ -523,8 +527,64 @@ shinyServer(function(input, output,session) {
          alt = "This is alternate text")
   }, deleteFile = TRUE)
   
+  output$select.image.reconstruct<-renderUI({
+    truc <- paste(seq(nrow(inFile.photo())),inFile.photo()$name,sep="  -  ")
+    tagList(
+      selectizeInput("select.image.reconstruct","Plate choice",choices=truc),
+      numericInput('select.image.reconstruct.track','band to compare with chromatogram',1)
+      )
+  })
+  
+  output$image.reconstruct <- renderImage({
+    n.pic<-as.numeric(substr(input$select.image.reconstruct,1,3))
+    inFile <- inFile.photo()
+    if(input$TableDimensionConvention == 'Linomat'){
+      largeur<-as.numeric(TableDimension()[n.pic,1])
+      dist.gauche<-as.numeric(TableDimension()[n.pic,2])
+      band<-as.numeric(TableDimension()[n.pic,3])
+      ecart<-as.numeric(TableDimension()[n.pic,4])
+      tolerance<-as.numeric(TableDimension()[n.pic,5])
+    }else{
+      largeur<-as.numeric(TableDimension()[n.pic,1])
+      band<-as.numeric(TableDimension()[n.pic,3])
+      dist.gauche<-as.numeric(TableDimension()[n.pic,2])-band/2
+      ecart<-as.numeric(TableDimension()[n.pic,4])-band
+      tolerance<-as.numeric(TableDimension()[n.pic,5])
+    }
+    nbr.band<-round((largeur-2*dist.gauche)/(band+ecart))
+    
+    outfile <- tempfile(fileext='.png')
+    png(outfile, width=800, height=1800)
+    par(mar=c(5,4,0,0),mfrow=c(2,1))
+    plot(c(0,largeur),c(0,input$hauteur.mono*2), type='n',ylab="",xlab="",bty='n')
+    rasterImage(f.read.image(as.character(inFile[n.pic,4]),native=T,input$mono.Format.type,height=0,PicturePreprocess()),
+                0 , 0, largeur, input$hauteur.mono)
+    image <- f.read.image(as.character(inFile[n.pic,4]),native=F,input$mono.Format.type,height=input$redim.height,PicturePreprocess())
+    data <- f.eat.image(image,largeur,dist.gauche,band,ecart,tolerance)
+    for(i in seq(nbr.band)){
+      abline(v=dist.gauche+tolerance+(i-1)*(band+ecart),col="red")
+      abline(v=dist.gauche-tolerance+band+(i-1)*(band+ecart),col="green")
+      data2<-f.rebuilt(data[i,,1],data[i,,2],data[i,,3])
+      rasterImage(data2,dist.gauche+tolerance+(i-1)*(band+ecart),input$hauteur.mono,dist.gauche-tolerance+band+(i-1)*(band+ecart),input$hauteur.mono*2)
+    }
+    id <- input$select.image.reconstruct.track
+    f.plot.array(data,id=id,label=NULL,input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,ylim.raster = 1.6)
+    a<-dim(image)
+    rasterImage(aperm(image[,(a[2]/largeur*((dist.gauche+tolerance)+(id-1)*(band+ecart))):(a[2]/largeur*((dist.gauche+band-tolerance)+(id-1)*(band+ecart))),],c(2,1,3)),
+                RF.min() , 1.4, RF.max(), 1.6)
+    dev.off()
+    list(src = outfile,
+         contentType = 'image/png',
+         #          width = 600,
+         #          height = 300,
+         alt = "This is alternate text")
+  }, deleteFile = TRUE)
+  
   ################ data.mono.2   ##########
   data.mono.1.1<-reactive({
+    validate(
+      need(input$Zf.mono != 0, "The retention front could not be 0 mm, please verify the Verticale dimension table")
+    )
     withProgress(message = "Work in Progress", value=0, {
       if(input$filedemouse == 'checkpoint'){
         validate(
@@ -569,7 +629,6 @@ shinyServer(function(input, output,session) {
     validate(
       need(dim(data)[1] == nrow(dataX), "The number of chromatograms extracted do not match the number of row in your batch, please check your batch or your dimension table")
     )
-    rownames(data)<-dataX$id
     data
   })
   data.mono.2 <- reactive({
@@ -591,17 +650,26 @@ Train.partition <- reactive({
       Pred.upload.model()[[5]]
     }
   })
+  output$ptw.warp.ref <- renderUI({
+    choices <- Truc.mono()[Train.partition()]
+    selectizeInput('ptw.warp.ref','Select the track to use as reference',choices=choices)
+  })
+  output$ptw.warp.ref.bis <- renderUI({
+    choices <- Truc.mono()[Train.partition()]
+    selectizeInput('ptw.warp.ref','Select the track to use as reference',choices=choices)
+  })
   Preprocess.options <- reactive({
     if(input$filedemouse != 'QC'){
       data <- data.mono.2()
       Smoothing <- list(window.size = input$window.size,poly.order=input$poly.order,diff.order=input$diff.order)
       if(input$warpmethod == 'ptw'){
         Warping <- list(warpmethod = input$warpmethod,
-                        ptw.warp.ref = input$ptw.warp.ref)
+                        ptw.warp.ref = as.numeric(input$ptw.warp.ref)
+        )
       }
       if(input$warpmethod == 'dtw'){
         Warping <- list(warpmethod = input$warpmethod,
-                        dtw.warp.ref = input$ptw.warp.ref,
+                        dtw.warp.ref = as.numeric(input$ptw.warp.ref),
                         dtw.split = input$dtw.split
         )
       }
@@ -629,14 +697,6 @@ Train.partition <- reactive({
         need(input$window.size > input$poly.order, "The window size must be greater than the polynomial order"),
         need(input$poly.order > input$diff.order, "The polynomial order must be greater than the differential order")
       )
-#       validate(
-#         need(!Not.Use()[input$ptw.warp.ref], "the reference id for the warping is not in the batch")
-#       )
-      if('warping' %in% Preprocess.order()){
-        validate(
-          need(Train.partition()[input$ptw.warp.ref], "the reference id for the warping is not in the training set")
-        )
-      }
       withProgress(message = "Work in Progress", value=0, {
         data<-data.mono.2()
         data <- f.preprocess(data,preprocess.order = Preprocess.order(),preprocess.option = Preprocess.options(),
@@ -732,49 +792,33 @@ Train.partition <- reactive({
       need(input$Not.Use.1 != "", "Please visit the batch tab in Data Input to choose the data you want to Use")
     )
     data <- data.mono.2()
-    n.band<-as.numeric(substr(input$name.band.mono.bef.1,7,9))
-    f.plot.array(data,n.band,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,inverse=MAC.inverse)
+    n.band<-as.numeric(input$name.band.mono.bef.1)
+    f.plot.array(data,n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,inverse=MAC.inverse)
     abline(v=input$z.min,col=5)
     abline(v=input$z.max,col=7)
   },height = 400,width=700)
-  # output$plot.v.mono.bef.zoom.1 <- renderPlot({
-  #   n.band<-as.numeric(substr(input$name.band.mono.bef.1,7,9))
-  #   f.plot.array(data.mono.2(),n.band,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,xlim=c(input$z.min,input$z.max))
-  #   abline(v=input$z.min,col=5)
-  #   abline(v=input$z.max,col=7)
-  # },height = 400,width=700)
+  
   output$plot.v.mono.bef.2 <- renderPlot({
     validate(
       need(input$Not.Use.1 != "", "Please visit the batch tab in Data Input to choose the data you want to Use")
     )
     data <- data.mono.2()
-    n.band<-as.numeric(substr(input$name.band.mono.bef.2,7,9))
-    f.plot.array(data,n.band,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,inverse=MAC.inverse)
+    n.band<-as.numeric(input$name.band.mono.bef.2)
+    f.plot.array(data,n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,inverse=MAC.inverse)
     abline(v=input$z.min,col=5)
     abline(v=input$z.max,col=7)
   },height = 400,width=700)
-  # output$plot.v.mono.bef.zoom.2 <- renderPlot({
-  #   n.band<-as.numeric(substr(input$name.band.mono.bef.2,7,9))
-  #   f.plot.array(data.mono.2(),n.band,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,xlim=c(input$z.min,input$z.max))
-  #   abline(v=input$z.min,col=5)
-  #   abline(v=input$z.max,col=7)
-  # },height = 400,width=700)
+  
   output$plot.v.mono.aft.1 <- renderPlot({
     data <- data.mono.3()
-    n.band<-as.numeric(substr(input$name.band.mono.aft.1,7,9))
-    #   par(mar=c(5,4,4,0))
-    f.plot.array(data,n.band,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
-    #   abline(v=input$z.min,col=5)
-    #   abline(v=input$z.max,col=7)
+    n.band<-as.numeric(input$name.band.mono.aft.1)
+    f.plot.array(data,n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
     abline(h=0)
   },height = 400,width=700)
   output$plot.v.mono.aft.2 <- renderPlot({
     data <- data.mono.3()
-    n.band<-as.numeric(substr(input$name.band.mono.aft.2,7,9))
-    #   par(mar=c(5,4,4,0))
-    f.plot.array(data,n.band,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
-    #   abline(v=input$z.min,col=5)
-    #   abline(v=input$z.max,col=7)
+    n.band<-as.numeric(input$name.band.mono.aft.2)
+    f.plot.array(data,n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
     abline(h=0)
   },height = 400,width=700)
 
@@ -782,7 +826,7 @@ output$plot.v.mono.bef.tot <- renderPlot({
   validate(
     need(length(input$name.band.mono.bef.tot) > 1,"Select at least 2 band for comparaison")
     )
-  n.band<-as.numeric(substr(input$name.band.mono.bef.tot,7,9))
+  n.band<-as.numeric(input$name.band.mono.bef.tot)
   hauteur<-input$hauteur.mono
   dist.bas<-input$dist.bas.mono
   Zf <- input$Zf.mono
@@ -790,23 +834,23 @@ output$plot.v.mono.bef.tot <- renderPlot({
   par(mar=c(5,4,4,1), mfrow=c(4,1))
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,1])),
           lty=1,type="l",main="Red channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
-  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,2])),
           lty=1,type="l",main="Green channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
-  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,3])),
           lty=1,type="l",main="Blue channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
-  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,4])),
           lty=1,type="l",main="Grey channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
-  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
 },height = 1200,width=800)
 
 output$plot.v.mono.aft.tot <- renderPlot({
   validate(
     need(length(input$name.band.mono.aft.tot) > 1,"Select at least 2 band for comparaison")
   )
-  n.band<-as.numeric(substr(input$name.band.mono.aft.tot,7,9))
+  n.band<-as.numeric(input$name.band.mono.aft.tot)
   hauteur<-input$hauteur.mono
   dist.bas<-input$dist.bas.mono
   Zf <- input$Zf.mono
@@ -814,26 +858,26 @@ output$plot.v.mono.aft.tot <- renderPlot({
   par(mar=c(5,4,4,1), mfrow=c(4,1))
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,1])),
           lty=1,type="l",main="Red channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
-  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,2])),
           lty=1,type="l",main="Green channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
-  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,3])),
           lty=1,type="l",main="Blue channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
-  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,4])),
           lty=1,type="l",main="Grey channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
-  legend("topright", legend=Truc.mono()[n.band] , col = seq(length(n.band)),pch="*")
+  legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
 },height = 1200,width=800)
 output$image.comparaison.1 <- renderPlot({
   validate(
     need(length(input$name.band.m.com.1) > 1,"Select at least 2 band for comparaison")
   )
   data<-data.mono.2()
-  band<-as.numeric(substr(input$name.band.m.com.1,7,9))
+  band<-as.numeric(input$name.band.m.com.1)
   plot(c(0,length(band)),c(0,10), type='n',ylab="",xlab="",xaxt = "n",yaxt = "n")
   for(i in seq(band)){
-    data2<-f.rebuilt(data[as.character(band[i]),,1],data[as.character(band[i]),,2],data[as.character(band[i]),,3])
+    data2<-f.rebuilt(data[band[i],,1],data[band[i],,2],data[band[i],,3])
     rasterImage(data2,i-1,0,i,10)
     text(x=i-0.5,y=9,labels=band[i],col="red",cex=2)
     par(new=T)
@@ -1370,35 +1414,35 @@ Truc.mono<-reactive({
   validate(
     need(input$Not.Use.1 != "", "Please visit the batch tab in Data Input to choose the data you want to Use")
   )
-  data<-dataX.edited()[,c('id',input$batch.Truc.mono)]
-  paste0("track ",apply(data,1,paste0,collapse='  - '))
+  data<-dataX.mono.pre()[,c('id',input$batch.Truc.mono)]
+  truc <- seq(nrow(data))
+  names(truc) <- paste0("track ",apply(data,1,paste0,collapse='  - '))
+  truc
 })
 output$choice.band.mono.bef.1 <- renderUI({
-  selectizeInput('name.band.mono.bef.1', 'Choice of the band 1', choices=Truc.mono()[!Not.Use()],width="1000px")
+  selectizeInput('name.band.mono.bef.1', 'Choice of the band 1', choices=Truc.mono(),width="1000px")
 })
 output$choice.band.mono.bef.2 <- renderUI({
-  selectizeInput('name.band.mono.bef.2', 'Choice of the band 2', choices=Truc.mono()[!Not.Use()],width="1000px")
+  selectizeInput('name.band.mono.bef.2', 'Choice of the band 2', choices=Truc.mono(),width="1000px")
 })
 output$choice.band.m.comp.1 <- renderUI({
-  selectizeInput('name.band.m.com.1', 'Choice of the bands to compare', choices=Truc.mono()[!Not.Use()],multiple=T)
+  selectizeInput('name.band.m.com.1', 'Choice of the bands to compare', choices=Truc.mono(),multiple=T)
 })
 output$choice.band.mono.aft.1 <- renderUI({
-  selectizeInput('name.band.mono.aft.1', 'Choice of the band 1', choices=Truc.mono()[!Not.Use()],width="1000px")
+  selectizeInput('name.band.mono.aft.1', 'Choice of the band 1', choices=Truc.mono(),width="1000px")
 })
 output$choice.band.mono.aft.2 <- renderUI({
-  selectizeInput('name.band.mono.aft.2', 'Choice of the band 2', choices=Truc.mono()[!Not.Use()],width="1000px")
+  selectizeInput('name.band.mono.aft.2', 'Choice of the band 2', choices=Truc.mono(),width="1000px")
 })
 output$choice.band.mono.bef.tot <- renderUI({
-  selectizeInput('name.band.mono.bef.tot', 'Choice of the band to compare', choices=Truc.mono()[!Not.Use()],selected=NULL,
+  selectizeInput('name.band.mono.bef.tot', 'Choice of the band to compare', choices=Truc.mono(),selected=NULL,
                  multiple=T,width='250%')
 })
 output$choice.band.mono.aft.tot <- renderUI({
-  selectizeInput('name.band.mono.aft.tot', 'Choice of the band to compare', choices=Truc.mono()[!Not.Use()],selected=NULL,
+  selectizeInput('name.band.mono.aft.tot', 'Choice of the band to compare', choices=Truc.mono(),selected=NULL,
                      multiple=T,width='250%')
 })
-# output$choice.band.mono.integration <- renderUI({
-#   radioButtons('name.band.mono.integration', 'Choice of the band', choices=Truc.mono())
-# })
+
 output$mono.knitr.download = downloadHandler(
   filename = "HPTLC-report",
   content = function(file) {
