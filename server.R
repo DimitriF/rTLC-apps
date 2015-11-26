@@ -570,7 +570,7 @@ shinyServer(function(input, output,session) {
     id <- input$select.image.reconstruct.track
     f.plot.array(data,id=id,label=NULL,input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,ylim.raster = 1.6)
     a<-dim(image)
-    rasterImage(aperm(image[,(a[2]/largeur*((dist.gauche+tolerance)+(id-1)*(band+ecart))):(a[2]/largeur*((dist.gauche+band-tolerance)+(id-1)*(band+ecart))),],c(2,1,3)),
+    rasterImage(aperm(image[,((a[2]/largeur*((dist.gauche+band-tolerance)+(id-1)*(band+ecart)):a[2]/largeur*((dist.gauche+tolerance)+(id-1)*(band+ecart)))),],c(2,1,3)),
                 RF.min() , 1.4, RF.max(), 1.6)
     dev.off()
     list(src = outfile,
