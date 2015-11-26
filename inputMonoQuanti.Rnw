@@ -277,8 +277,6 @@ if(input$mono.knitr.pca.score.loading.split == T){
     axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
   }
 }
-
-
 @
 
 
@@ -287,9 +285,6 @@ if(input$mono.knitr.pca.score.loading.split == T){
 if(input$mono.knitr.prediction.summary.model == T | input$mono.knitr.var.select ==T){
   print(xtable(selection.table(), caption = 'Variables Selection'),include.rownames=F,colnames=T)
 }
-
-
-
 @
 
 <<echo = FALSE>>=
@@ -332,3 +327,4 @@ if(length(input$mono.knitr.prediction.validation) != 0){
 @
 
 \end{document}
+

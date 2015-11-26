@@ -87,7 +87,7 @@ shinyUI(navbarPage("rTLC",
                                                     ),
                                                     shinydashboard::box(title="Horizontal Dimensions (mm)",collapsible = F,width=12,height=500,
                                                         tableOutput('TableDimension'),
-                                                        radioButtons('TableDimensionConvention','Convention to use in the Horizontal table',choices=c('Linomat','ATS-4'),selected='Linomat'),
+                                                        radioButtons('TableDimensionConvention','Convention to use in the Horizontal table',choices=c('Linomat','ATS-4'),selected='ATS-4'),
                                                         downloadButton('TableDimensionSave','Save the Dimension table'),
                                                         fileInput("TableDimensionUpload","Upload the saved table"),
                                                         plotOutput('TableDimensionPlot')
@@ -150,12 +150,18 @@ shinyUI(navbarPage("rTLC",
                                                   helpText(   a("Click Here for help with this smoothing feature",target="_blank",     
                                                                 href="http://www.inside-r.org/node/206625")
                                                   ),
+                                                  helpText(   a("Wikipedia link",target="_blank",     
+                                                                href="https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter")
+                                                  ),
                                                   numericInput("window.size","size of the windows",3,min=3,max=NA,step=2),
                                                   numericInput("poly.order","polynomial order",1),
                                                   numericInput("diff.order","differentiation order",0)
                                                   ),
                                            column(3,
                                                   h4("Warping"),
+                                                  helpText(   a("Wikipedia link about peak alignment",target="_blank",     
+                                                                href="https://en.wikipedia.org/wiki/Dynamic_time_warping")
+                                                  ),
                                                   selectizeInput("warpmethod","Warping method to use",choices=(c("ptw",'dtw')),selected="ptw"),
                                                   conditionalPanel(condition="input.warpmethod=='ptw'",
                                                                    helpText(   a("Click Here for help with the PTW funtion",target="_blank",     
@@ -517,6 +523,7 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                               sidebarPanel(width = 3,
                                            sliderInput('Train.partition','Part of data to train with (the preprocess will be rerun if changed)',min=0,max=1,value = 0.75),
                                            uiOutput('Train.model.algo'),
+                                           uiOutput('Train.model.algo.wiki'),
                                            uiOutput("Train.column"),
                                            radioButtons('Trainproblem','Type',choices=c('classification','regression'),selected='classification'),
                                            # checkboxGroupInput("col.Pred","Choice of the channel(s)",choices=c("red"=1,"green"=2,"blue"=3,"grey"=4),select=seq(4)),
@@ -530,6 +537,9 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                   tabPanel("Tuning Options",
                                            fluidRow(
                                              box(title='General Options',width=3,collapsible = F,
+                                                 helpText(   a("Click Here to learn about the Validation techniques",target="_blank",     
+                                                               href="https://en.wikipedia.org/wiki/Cross-validation_%28statistics%29")
+                                                 ),
                                                  selectizeInput('Train.control.method','Validation method for the tunning',
                                                                 choices=c('boot', 'repeatedcv', 'LOOCV'),
                                                                 selected='repeatedcv'),
@@ -618,6 +628,21 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
 #                                    downloadButton('downloadReport')
                                    )
                    ),
+#                    tabPanel('Batch Creator',
+#                             sidebarLayout(
+#                               sidebarPanel(
+#                                 fileInput('batch.creator.file','Upload a precedent file to get a template'),
+#                                 uiOutput('batch.creator.plate')
+#                               ),
+#                               mainPanel(
+#                                 tabsetPanel(
+#                                   tabPanel('test',
+#                                     p('incoming')
+#                                   )
+#                                 )
+#                               )
+#                             )
+#                             ),
                    tabPanel('About/help',
                             wellPanel(
                               tabsetPanel(

@@ -1161,6 +1161,18 @@ output$Train.model.algo.info <- renderPrint({
   getModelInfo()[input$Train.model.algo]
 })
 
+output$Train.model.algo.wiki <- renderUI({
+  if(input$Train.model.algo == 'pls'){href <- 'https://en.wikipedia.org/wiki/Partial_least_squares_regression'}
+  if(input$Train.model.algo == 'lda'){href <- 'https://en.wikipedia.org/wiki/Linear_discriminant_analysis'}
+  if(input$Train.model.algo == 'rf'){href <- 'https://en.wikipedia.org/wiki/Random_forest'}
+  if(input$Train.model.algo == 'pcr'){href <- 'https://en.wikipedia.org/wiki/Principal_component_regression'}
+  if(input$Train.model.algo == 'rpart'){href <- 'https://en.wikipedia.org/wiki/Decision_tree_learning'}
+  if(input$Train.model.algo == 'svmLinear2' | input$Train.model.algo == 'svmPoly'){href <- 'https://en.wikipedia.org/wiki/Support_vector_machine'}
+  helpText(   a("Click Here to learn about this algorythm",target="_blank",     
+                href=href)
+  )
+})
+
 Train.Ind <- reactive({
   data <- data.mono.4()
   return(as.matrix(data))
@@ -1481,6 +1493,27 @@ output$downloadReport <- downloadHandler(
 output$sessionInfo <- renderPrint({
   sessionInfo()
 })
+
+## Batch creator
+
+# output$batch.creator.plate <- renderUI({
+#   if(is.null(input$batch.creator.file)){
+#     data <- read.xlsx('www/batch_creator_template.xlsx',1)
+#   }else{
+#     data <- read.xlsx(input$batch.creator.file[,4],1)
+#   }
+#   truc <- tagList(dateInput('batch.creator.date','date',value=NULL))
+#   for(i in c(3:23)){
+#     if(is.numeric(data[,i])){machin <- numericInput(paste0('batch.creator.',colnames(data)[i]),colnames(data)[i],unique(data[,i]))}
+#     if(is.factor(data[,i]) & (data[1,i] == T | data[1,i] == F)){machin <- checkboxInput(paste0('batch.creator.',colnames(data)[i]),colnames(data)[i],unique(data[,i]))
+#     }else{
+#       if(is.factor(data[,i]) & unique(data[,i]) == 1){machin <- textInput(paste0('batch.creator.',colnames(data)[i]),colnames(data)[i],unique(data[,i]))}
+#       if(is.factor(data[,i]) & unique(data[,i]) != 1){machin <- selectizeInput(paste0('batch.creator.',colnames(data)[i]),colnames(data)[i],choices=as.character(unique(data[,i])))}
+#     }
+#     truc <- tagAppendChild(truc,machin)
+#   }
+#   truc
+# })
 
 
 })
