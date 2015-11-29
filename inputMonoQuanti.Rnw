@@ -291,7 +291,7 @@ if(input$mono.knitr.pca.score.loading.split == T){
 <<echo = FALSE,results = 'asis'>>=
 ## model summary
 if(input$mono.knitr.prediction.summary.model == T | input$mono.knitr.var.select ==T){
-  print(xtable(selection.table(), caption = 'Variables Selection'),include.rownames=F,colnames=T)
+  print(xtable(selection.table()[selection.table()$use==T,], caption = 'Variables Selection'),include.rownames=F,colnames=T)
 }
 @
 

@@ -509,7 +509,7 @@ shinyServer(function(input, output,session) {
     
     outfile <- tempfile(fileext='.png')
     png(outfile, width=600, height=300)
-    par(mar=c(5,4,0,0))
+    par(mar=c(0,0,0,0))
     plot(c(0,largeur),c(0,input$hauteur.mono), type='n',ylab="",xlab="",bty='n')
     rasterImage(f.read.image(as.character(inFile[n.pic,4]),native=T,input$mono.Format.type,height=0),
                 0 , 0, largeur, input$hauteur.mono)
@@ -729,22 +729,30 @@ Train.partition <- reactive({
     Zf <- input$Zf.mono
     round(-dist.bas/(Zf-dist.bas),3)
   })
-  output$VS_slider_1 <- renderUI({sliderInput("VS_slider_1", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_2 <- renderUI({sliderInput("VS_slider_2", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_3 <- renderUI({sliderInput("VS_slider_3", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_4 <- renderUI({sliderInput("VS_slider_4", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_5 <- renderUI({sliderInput("VS_slider_5", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_6 <- renderUI({sliderInput("VS_slider_6", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_7 <- renderUI({sliderInput("VS_slider_7", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_8 <- renderUI({sliderInput("VS_slider_8", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_9 <- renderUI({sliderInput("VS_slider_9", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_10 <- renderUI({sliderInput("VS_slider_10", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_11 <- renderUI({sliderInput("VS_slider_11", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_12 <- renderUI({sliderInput("VS_slider_12", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
-  output$VS_slider_score.loading <- renderUI({sliderInput("VS_slider_score.loading", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.01)})
+  output$VS_slider_1 <- renderUI({sliderInput("VS_slider_1", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_2 <- renderUI({sliderInput("VS_slider_2", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_3 <- renderUI({sliderInput("VS_slider_3", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_4 <- renderUI({sliderInput("VS_slider_4", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_5 <- renderUI({sliderInput("VS_slider_5", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_6 <- renderUI({sliderInput("VS_slider_6", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_7 <- renderUI({sliderInput("VS_slider_7", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_8 <- renderUI({sliderInput("VS_slider_8", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_9 <- renderUI({sliderInput("VS_slider_9", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_10 <- renderUI({sliderInput("VS_slider_10", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_11 <- renderUI({sliderInput("VS_slider_11", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_12 <- renderUI({sliderInput("VS_slider_12", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_13 <- renderUI({sliderInput("VS_slider_13", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_14 <- renderUI({sliderInput("VS_slider_14", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_15 <- renderUI({sliderInput("VS_slider_15", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_16 <- renderUI({sliderInput("VS_slider_16", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_17 <- renderUI({sliderInput("VS_slider_17", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_18 <- renderUI({sliderInput("VS_slider_18", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_19 <- renderUI({sliderInput("VS_slider_19", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_20 <- renderUI({sliderInput("VS_slider_20", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_score.loading <- renderUI({sliderInput("VS_slider_score.loading", label = 'Not working yet', min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
   selection.table <- reactive({
     if(input$filedemouse != 'QC'){
-      n <- 12
+      n <- 20
       validate(
         need(!is.null(input[[paste0('VS_slider_',1)]]), "Please visit the variable selection table")
       )
@@ -767,16 +775,15 @@ Train.partition <- reactive({
     par(mfrow=c(1,2))
     selection <- selection.table()
     min=RF.min();max=RF.max()
-    plot(c(min,max),c(1,12),type='n',xlab = 'Rf',ylab = 'index')
+    plot(c(min,max),c(1,20),type='n',xlab = 'Rf',ylab = 'index',main='Scheme of the varaible selection')
     selection$channel <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'grey',selection$channel))))
     
-    for(i in seq(12)){
+    for(i in seq(20)){
       if(selection[i,1] == T){
-        arrows(x0=selection[i,3], y0=i, x1 =selection[i,4],col=selection[i,2])
-        arrows(x1=selection[i,3], y0=i, x0 =selection[i,4],col=selection[i,2])
+        arrows(x0=selection[i,3], y0=i, x1 =selection[i,4],col=selection[i,2],code=3,length=0.1)
       }
     }
-    plot(x=seq(dim(data.mono.4())[2]),data.mono.4()[1,],type='l')
+    plot(x=seq(dim(data.mono.4())[2]),data.mono.4()[1,dim(data.mono.4())[2]:1],type='l',main='Result for the first sample',xlan='index',ylab='intensity')
   })
     
   

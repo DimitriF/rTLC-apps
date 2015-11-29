@@ -32,8 +32,14 @@ require('shinyAce');require('shinydashboard');require('d3heatmap');
 
 
 
-shinyUI(navbarPage("rTLC",
+shinyUI(navbarPage(title="rTLC",
                    tabPanel("Data input",
+                            tags$head(includeScript("google-analytics.js")),
+                            tags$head(tags$style(type="text/css", "tfoot {display: table-header-group}")),
+                            tags$head(tags$style(HTML(".shiny-output-error-validation {color: red;font-size: 24px}"))),
+                            tags$head(tags$style(type="text/css", ".shiny-progress .progress {position: absolute;width: 100%;top: 100px;height: 10px;margin: 0px;}")),
+                            tags$head(tags$style(type="text/css", ".shiny-progress .progress-text {position: absolute;border-style: solid;
+                                                 border-width: 2px;right: 10px;height: 36px;width: 50%;background-color: #EEF8FF;margin: 0px;padding: 2px 3px;opacity: 1;}")),
                             fluidRow(
                               column(width=3,
                                 selectizeInput('filedemouse','Data to use',
@@ -315,6 +321,46 @@ shinyUI(navbarPage("rTLC",
                                      column(1,checkboxInput("VS_check_12", label = NULL, value=F)),
                                      column(2,selectizeInput("VS_select_12", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_12'))
+                                   ),
+                                   fluidRow(
+                                     column(1,checkboxInput("VS_check_13", label = NULL, value=F)),
+                                     column(2,selectizeInput("VS_select_13", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(9,uiOutput('VS_slider_13'))
+                                   ),
+                                   fluidRow(
+                                     column(1,checkboxInput("VS_check_14", label = NULL, value=F)),
+                                     column(2,selectizeInput("VS_select_14", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(9,uiOutput('VS_slider_14'))
+                                   ),
+                                   fluidRow(
+                                     column(1,checkboxInput("VS_check_15", label = NULL, value=F)),
+                                     column(2,selectizeInput("VS_select_15", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(9,uiOutput('VS_slider_15'))
+                                   ),
+                                   fluidRow(
+                                     column(1,checkboxInput("VS_check_16", label = NULL, value=F)),
+                                     column(2,selectizeInput("VS_select_16", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(9,uiOutput('VS_slider_16'))
+                                   ),
+                                   fluidRow(
+                                     column(1,checkboxInput("VS_check_17", label = NULL, value=F)),
+                                     column(2,selectizeInput("VS_select_17", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(9,uiOutput('VS_slider_17'))
+                                   ),
+                                   fluidRow(
+                                     column(1,checkboxInput("VS_check_18", label = NULL, value=F)),
+                                     column(2,selectizeInput("VS_select_18", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(9,uiOutput('VS_slider_18'))
+                                   ),
+                                   fluidRow(
+                                     column(1,checkboxInput("VS_check_19", label = NULL, value=F)),
+                                     column(2,selectizeInput("VS_select_19", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(9,uiOutput('VS_slider_19'))
+                                   ),
+                                   fluidRow(
+                                     column(1,checkboxInput("VS_check_20", label = NULL, value=F)),
+                                     column(2,selectizeInput("VS_select_20", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(9,uiOutput('VS_slider_20'))
                                    )
                               
                             ),
@@ -676,12 +722,6 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                          )
                               )
                             )
-                            ),
-                   tags$head(includeScript("google-analytics.js")),
-                   tags$head(tags$style(type="text/css", "tfoot {display: table-header-group}")),
-                   tags$head(tags$style(HTML(".shiny-output-error-validation {color: red;font-size: 24px}"))),
-                   tags$head(tags$style(type="text/css", ".shiny-progress .progress {position: absolute;width: 100%;top: 100px;height: 10px;margin: 0px;}")),
-                   tags$head(tags$style(type="text/css", ".shiny-progress .progress-text {position: absolute;border-style: solid;
-                                        border-width: 2px;right: 10px;height: 36px;width: 50%;background-color: #EEF8FF;margin: 0px;padding: 2px 3px;opacity: 1;}"))
+                            )
                    
                      ))
