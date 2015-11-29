@@ -23,29 +23,29 @@ f.area<-function(data,start,stop){
 f.height<-function(data,start,stop){
   return(abs(max(data[start:stop])))
 }
-f.read.image<-function(source,native,format,height=0,PicturePreprocess=c(1,1,0,0)){
-  gamma=PicturePreprocess[1];medianfilter=PicturePreprocess[2];lowpass=PicturePreprocess[3];highpass=PicturePreprocess[4]
-#   if(format == "tiff"){data<-readTIFF(source,native=native)}
-#   if(format == "jpeg"){data<-readJPEG(source=source,native=native)}
-#   if(format == "png"){data<-readPNG(source=source,native=native)}
+f.read.image<-function(source,native,format,height=0){
+#   gamma=PicturePreprocess[1];medianfilter=PicturePreprocess[2];lowpass=PicturePreprocess[3];highpass=PicturePreprocess[4]
+  if(format == "tiff"){data<-readTIFF(source,native=native)}
+  if(format == "jpeg"){data<-readJPEG(source=source,native=native)}
+  if(format == "png"){data<-readPNG(source=source,native=native)}
 #   if(format == 'bmp'){data<-read.bmp(source)}
 #   if(format == 'EBIimage'){data<-readImage(source,type=format)@.Data;data<-aperm(data,c(2,1,3))}
-  data<-readImage(source,type=format)
-  if(gamma!=1){data <- data ^ gamma}
-  if(medianfilter!=1){data <- medianFilter(data,medianfilter)}
-  if(lowpass==T){
-    fLow <- makeBrush(21, shape= 'disc', step=FALSE)^2
-    fLow <- fLow/sum(fLow)
-    data <- filter2(data, fLow)
-    }
-  if(highpass==T){
-    fHigh <- matrix(1, nc = 3, nr = 3)
-    fHigh[2, 2] <- -8
-    data <- filter2(data, fHigh)
-    }
-  data <- normalize(data)
-  data <- data@.Data
-  data<-aperm(data,c(2,1,3))
+#   data<-readImage(source,type=format)
+#   if(gamma!=1){data <- data ^ gamma}
+#   if(medianfilter!=1){data <- medianFilter(data,medianfilter)}
+#   if(lowpass==T){
+#     fLow <- makeBrush(21, shape= 'disc', step=FALSE)^2
+#     fLow <- fLow/sum(fLow)
+#     data <- filter2(data, fLow)
+#     }
+#   if(highpass==T){
+#     fHigh <- matrix(1, nc = 3, nr = 3)
+#     fHigh[2, 2] <- -8
+#     data <- filter2(data, fHigh)
+#     }
+#   data <- normalize(data)
+#   data <- data@.Data
+#   data<-aperm(data,c(2,1,3))
   if(height != 0){
     data.1 <- redim(data[,,1],height,dim(data)[2])
     data.2 <- redim(data[,,2],height,dim(data)[2])

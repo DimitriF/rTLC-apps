@@ -134,6 +134,14 @@ if(input$mono.knitr.plot.brut == "all"){
         name <- c(name,i)
         value <- c(value,T)
       }
+      if(i == 'medianFilter'){
+        name <- c(name,i)
+        value <- c(value,Preprocess.options()[[i]])
+      }
+      if(i == 'gammaCorrection'){
+        name <- c(name,i)
+        value <- c(value,Preprocess.options()[[i]])
+      }
       if(i == 'Mean.centering'){
         name <- c(name,i)
         value <- c(value,T)
@@ -317,7 +325,7 @@ if(length(input$mono.knitr.prediction.validation) != 0){
       print(confusionMatrix(x,y))
     }else{
       plot(x=x,y=y,xlab='Observation',ylab='Prediction',
-       main=paste0('Regression Curve: ',i,'\n','R2 = ',cor(x,y),' - RMSE = ',RMSE(x,y)))
+       main=paste0('Regression Curve: ',i,'\n','R2 = ',cor(x,y)^2,' - RMSE = ',RMSE(x,y)))
     }
   }
 }

@@ -3,3 +3,4 @@
 *.csv
 *.tex
 *.log
+.Rproj.user

@@ -24,6 +24,14 @@ f.preprocess <- function(data,preprocess.order,preprocess.option,training.data){
       data <- eval(parse(text=paste0(i,'(data,preprocess.option,training.data)')))
       training.data <- eval(parse(text=paste0(i,'(training.data,preprocess.option,training.data)')))
     }
+    if(i == 'medianFilter'){
+      data <- apply(data,c(2,3),medianFilter,preprocess.option$medianFilter)
+      training.data <- apply(training.data,c(2,3),medianFilter,preprocess.option$medianFilter)
+    }
+    if(i == 'gammaCorrection'){
+      data <- data^preprocess.option$gammaCorrection
+      training.data <- training.data^preprocess.option$gammaCorrection
+    }
     if(i == 'Standard.Normal.Variate'){
       data <- eval(parse(text=paste0(i,'(data)')))
       training.data <- eval(parse(text=paste0(i,'(training.data)')))

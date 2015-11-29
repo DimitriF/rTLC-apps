@@ -75,15 +75,8 @@ shinyUI(navbarPage("rTLC",
                                                         uiOutput("select.image.redim.mono"),
                                                         imageOutput("image.redim.mono")
                                                     ),
-                                                    shinydashboard::box(title="Vertical Dimensions (mm)",collapsible = F,width=4,height=550,
-                                                        tableOutput('TableDimensionVerticale'),
-                                                        h4('Image Preprocessing'),
-                                                        tableOutput('TablePicturePreprocess.1'),
-                                                        tableOutput('TablePicturePreprocess.2')
-#                                                         numericInput('Picture.gamma','Gamma correction',1),
-#                                                         numericInput('Picture.medianfilter','medianFilter',1),
-#                                                         checkboxInput('Picture.lowpass','Low pass filter',F),
-#                                                         checkboxInput('Picture.highpass','High pass filter',F)
+                                                    shinydashboard::box(title="Vertical Dimensions (mm)",collapsible = F,width=4,height=350,
+                                                        tableOutput('TableDimensionVerticale')
                                                     ),
                                                     shinydashboard::box(title="Horizontal Dimensions (mm)",collapsible = F,width=12,height=500,
                                                         tableOutput('TableDimension'),
@@ -137,8 +130,8 @@ shinyUI(navbarPage("rTLC",
                                 h4("Here you can choose different data preprocessing before starting the analysis."),
                                 tags$hr(),
                                 selectizeInput('Preprocess.order','Preprocess choice (order is important)',
-                                               choices=c('Smoothing','Warping','Standard.Normal.Variate',
-                                                         'Mean.centering','Autoscaling','Baseline.correction'),
+                                               choices=c('medianFilter','gammaCorrection','Smoothing','Baseline.correction','Warping','Standard.Normal.Variate',
+                                                         'Mean.centering','Autoscaling'),
                                                selected='',multiple=T)
  
                               ),
@@ -146,6 +139,10 @@ shinyUI(navbarPage("rTLC",
                                 tabsetPanel(
                                   tabPanel("Preprocess Details",
                                            column(3,
+                                                  h4("Median Filtering"),
+                                                  numericInput('preprocess.medianfilter','The half-size of the filtering window',3),
+                                                  h4('Gamma Correction'),
+                                                  numericInput('preprocess.gammacorrection','Value',2),
                                                   h4("Smoothing"),
                                                   helpText(   a("Click Here for help with this smoothing feature",target="_blank",     
                                                                 href="http://www.inside-r.org/node/206625")
@@ -156,42 +153,6 @@ shinyUI(navbarPage("rTLC",
                                                   numericInput("window.size","size of the windows",3,min=3,max=NA,step=2),
                                                   numericInput("poly.order","polynomial order",1),
                                                   numericInput("diff.order","differentiation order",0)
-                                                  ),
-                                           column(3,
-                                                  h4("Warping"),
-                                                  helpText(   a("Wikipedia link about peak alignment",target="_blank",     
-                                                                href="https://en.wikipedia.org/wiki/Dynamic_time_warping")
-                                                  ),
-                                                  selectizeInput("warpmethod","Warping method to use",choices=(c("ptw",'dtw')),selected="ptw"),
-                                                  conditionalPanel(condition="input.warpmethod=='ptw'",
-                                                                   helpText(   a("Click Here for help with the PTW funtion",target="_blank",     
-                                                                                 href="http://www.inside-r.org/packages/cran/ptw/docs/ptw")
-                                                                   ),
-                                                                   #p("The best results I had was with respectively : ref=1, 'c(0,1,0)',individual,WCC,20 "),
-                                                                   uiOutput('ptw.warp.ref')
-                                                                   # numericInput("ptw.warp.ref","id of the reference",1)#,
-                                                                   #textInput("ptw.init.coef","init.coef","c(0,1,0)"),
-                                                                   #selectizeInput("ptw.warp.type","warp.type",choices=c("individual", "global"),selected="global"),
-                                                                   #selectizeInput("ptw.optim.crit","optim.crit",choices=c("WCC", "RMS"),selected="WCC"),
-                                                                   #numericInput("ptw.trwdth","trwdth",20)
-                                                  ),
-                                                  conditionalPanel(condition="input.warpmethod=='dtw'",
-                                                                   helpText(   a("Click Here for help with the DTW funtion",target="_blank",     
-                                                                                 href="http://www.inside-r.org/packages/cran/dtw/docs/dtw")
-                                                                   ),
-                                                                   uiOutput('ptw.warp.ref.bis'),
-                                                                   # numericInput("ptw.warp.ref","id of the reference",1),
-                                                                   checkboxInput('dtw.split','Do the alignment on the 4 channels separatly',F)
-                                                  )
-                                                  ),
-                                           column(3,
-                                                  h4("Standardisation"),
-                                                  helpText(   a("Click Here for help with the SNV feature",target="_blank",     
-                                                                href="http://www.inside-r.org/packages/cran/prospectr/docs/standardNormalVariate")
-                                                  ),
-                                                  helpText(   a("Click Here for help with the Autoscale feature",target="_blank",     
-                                                                href="http://stat.ethz.ch/R-manual/R-devel/library/base/html/scale.html")
-                                                  )
                                                   ),
                                            column(3,
                                                   h4("Baseline"),
@@ -240,6 +201,42 @@ shinyUI(navbarPage("rTLC",
                                                   conditionalPanel(condition="input.baseline=='rollingBall'",
                                                                    numericInput("wm","wm : Width of local window for minimization/maximization",200),
                                                                    numericInput("ws","ws : Width of local window for smoothing",200)
+                                                  )
+                                           ),
+                                           column(3,
+                                                  h4("Warping"),
+                                                  helpText(   a("Wikipedia link about peak alignment",target="_blank",     
+                                                                href="https://en.wikipedia.org/wiki/Dynamic_time_warping")
+                                                  ),
+                                                  selectizeInput("warpmethod","Warping method to use",choices=(c("ptw",'dtw')),selected="ptw"),
+                                                  conditionalPanel(condition="input.warpmethod=='ptw'",
+                                                                   helpText(   a("Click Here for help with the PTW funtion",target="_blank",     
+                                                                                 href="http://www.inside-r.org/packages/cran/ptw/docs/ptw")
+                                                                   ),
+                                                                   #p("The best results I had was with respectively : ref=1, 'c(0,1,0)',individual,WCC,20 "),
+                                                                   uiOutput('ptw.warp.ref')
+                                                                   # numericInput("ptw.warp.ref","id of the reference",1)#,
+                                                                   #textInput("ptw.init.coef","init.coef","c(0,1,0)"),
+                                                                   #selectizeInput("ptw.warp.type","warp.type",choices=c("individual", "global"),selected="global"),
+                                                                   #selectizeInput("ptw.optim.crit","optim.crit",choices=c("WCC", "RMS"),selected="WCC"),
+                                                                   #numericInput("ptw.trwdth","trwdth",20)
+                                                  ),
+                                                  conditionalPanel(condition="input.warpmethod=='dtw'",
+                                                                   helpText(   a("Click Here for help with the DTW funtion",target="_blank",     
+                                                                                 href="http://www.inside-r.org/packages/cran/dtw/docs/dtw")
+                                                                   ),
+                                                                   uiOutput('ptw.warp.ref.bis'),
+                                                                   # numericInput("ptw.warp.ref","id of the reference",1),
+                                                                   checkboxInput('dtw.split','Do the alignment on the 4 channels separatly',F)
+                                                  )
+                                                  ),
+                                           column(3,
+                                                  h4("Standardisation"),
+                                                  helpText(   a("Click Here for help with the SNV feature",target="_blank",     
+                                                                href="http://www.inside-r.org/packages/cran/prospectr/docs/standardNormalVariate")
+                                                  ),
+                                                  helpText(   a("Click Here for help with the Autoscale feature",target="_blank",     
+                                                                href="http://stat.ethz.ch/R-manual/R-devel/library/base/html/scale.html")
                                                   )
                                                   )
                                            ),
