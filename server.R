@@ -25,7 +25,7 @@ require("chemometrics");require("ggplot2");require("abind");require("plyr");requ
 require("prospectr");require("DiscriMiner");require("baseline");require("knitr");require('rmarkdown');
 require("xtable");require("ptw");require("dtw");
 require('d3heatmap');require('randomForest');require('kernlab');require('ipred');
-require('extraTrees');require('evtree');
+require('extraTrees');require('evtree');require('FBN')
 
 # require('EBImage')
 
@@ -87,7 +87,7 @@ shinyServer(function(input, output,session) {
   },deleteFile = F)
   
   output$checkpoint.1.download <- downloadHandler(
-    filename = "rTLC_checkpoint_1.Rdata",
+    filename = function(x){paste0(input$checkpoint.1.download.text,'.Rdata')},
     content = function(con) {
       assign("data",list(chrom = data.mono.2(),
                          batch = dataX.mono.pre(),
@@ -98,7 +98,7 @@ shinyServer(function(input, output,session) {
     )
 
   output$checkpoint.1.download.zip <- downloadHandler(
-    filename = "matlab_export.zip",
+    filename = function(x){paste0(input$checkpoint.1.download.zip.text,'.zip')},
     content = function(file) {
       fs <- c()
       channel <- c(red=1,green=2,blue=3,grey=4)
@@ -382,7 +382,7 @@ shinyServer(function(input, output,session) {
   }, sanitize.text.function = function(y) y)
   
   output$TableDimensionSave <- downloadHandler(
-    filename = "TableDimensionSave.xls",
+    filename = function(x){paste0(input$TableDimensionSave.text,'.xlsx')},
     content = function(file) {
       write.xlsx(TableDimension(),file=file,row.names = F)
     }
@@ -1362,11 +1362,13 @@ output$TrainValidMetricsRegPlot <- renderPlot({
 output$Train.tunning.plot <- renderPlot({
   print(plot(Train.model()))
 })
+output$Train.down.model.text <- renderUI({
+  value <- paste0(input$Train.model.algo,paste(Preprocess.order(),collapse='-'))
+  textInput('Train.down.model.text','filename',value)
+})
 
 output$Train.down.model <- downloadHandler(
-  filename = function(preprocess=Preprocess.order(),color=input$col.Pred,model=input$Train.model.algo){
-    color <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'grey',color))));paste0(model,'_channel_',paste(color,collapse='-'),'_Preprocess_',paste(preprocess,collapse='-'),'.Rdata')
-    },
+  filename = function(x){paste0(input$Train.down.model.text,'.Rdata')},
   content = function(con) {
     assign('data',list(model = Train.model(),
                        origine.data = data.mono.2()[Train.partition(),,],
@@ -1465,7 +1467,7 @@ output$choice.band.mono.aft.tot <- renderUI({
 })
 
 output$mono.knitr.download = downloadHandler(
-  filename = "HPTLC-report",
+  filename = function(x){paste0(input$mono.knitr.download.text,'.pdf')},
   content = function(file) {
 #     send.mail(from = "dimitrifi@laposte.net",to = "dimitrifi@laposte.net",subject = "subject",body = "Body of the email",smtp = list(host.name = "smtp.laposte.net", port = 25, user.name = "dimitrifi", passwd = "Tigrou", ssl = TRUE, tls = TRUE),authenticate = TRUE,send = TRUE,attach.files=knit2pdf('inputMonoQuanti.Rnw', clean = TRUE))
     out = knit2pdf('inputMonoQuanti.Rnw', clean = TRUE)

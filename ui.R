@@ -67,9 +67,10 @@ shinyUI(navbarPage(title="rTLC",
                                                  fileInput("checkpoint.1.upload","Rdata file to upload")
                                 ),
                                hr(),
+                               textInput('checkpoint.1.download.text','filename','rTLC_checkpoint_1'),
                                downloadButton("checkpoint.1.download",'Save Chromatograms'),
                                tags$hr(),
-                               # downloadButton("checkpoint.1.download.xlsx",'Save excel file'),
+                               textInput('checkpoint.1.download.zip.text','filename','rTLC_zip_export'),
                                downloadButton("checkpoint.1.download.zip",'Save zip file with csv')
                               ),
                               column(width=9,
@@ -87,6 +88,7 @@ shinyUI(navbarPage(title="rTLC",
                                                     shinydashboard::box(title="Horizontal Dimensions (mm)",collapsible = F,width=12,height=500,
                                                         tableOutput('TableDimension'),
                                                         radioButtons('TableDimensionConvention','Convention to use in the Horizontal table',choices=c('Linomat','ATS-4'),selected='ATS-4'),
+                                                        textInput('TableDimensionSave.text','filename','TableDimensionSave'),
                                                         downloadButton('TableDimensionSave','Save the Dimension table'),
                                                         fileInput("TableDimensionUpload","Upload the saved table"),
                                                         plotOutput('TableDimensionPlot')
@@ -573,6 +575,7 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                            hr(),
                                            div(class="btn btn-default action-button shiny-bound-input",actionButton('Train.go','Train')),
                                            hr(),
+                                           uiOutput('Train.down.model.text'),
                                            downloadButton("Train.down.model","Download model")
                               ),
                               mainPanel(width=9,
@@ -665,6 +668,7 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                    checkboxGroupInput('mono.knitr.prediction.validation','Print the validation results for ',choices=c('Cross-validation data','Training data','Test data'))
                                    ),
                             column(4,h4('Download'),
+                                   textInput('mono.knitr.download.text','filename','rTLC-report'),
                                    downloadButton('mono.knitr.download','Download the report')#,
 #                                    radioButtons('reportformat', 'Document format', c('PDF', 'HTML', 'Word'),
 #                                                 inline = TRUE),

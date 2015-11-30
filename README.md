@@ -30,14 +30,12 @@ Install the dependencies by running this in the R console:
 
 ```r
 install.packages(
-    c('shiny',"jpeg","png",'caret','klaR','xlsx',"ChemometricsWithR","gplots","kohonen",'memoise',"devtools","chemometrics",
+    c('shiny',"jpeg","png",'tiff','caret','klaR','xlsx',"ChemometricsWithR","gplots","kohonen",'memoise',"devtools","chemometrics",
       "ggplot2","abind","plyr",'dplyr',"prospectr","DiscriMiner","baseline","knitr","xtable",'rmarkdown',
       "ptw","dtw",'shinyAce','shinydashboard','d3heatmap','randomForest','kernlab','ipred','extraTrees','evtree',
-      'htmltools','httpuv','mime','MASS','pls','rpart','e1071')
+      'htmltools','httpuv','mime','MASS','pls','rpart','e1071','FBN')
     )
-source("http://bioconductor.org/biocLite.R")
-biocLite()
-biocLite("EBImage")
+
 ```
 
 Finally, launch the application by running this line
