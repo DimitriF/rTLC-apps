@@ -1,5 +1,5 @@
 #### License ####
-#Copyright (C) {2014}  {Fichou Dimitri} 
+#Copyright (C) {2014}  {Fichou Dimitri}
 #{dimitrifichou@laposte.net}
 
 #This program is free software; you can redistribute it and/or modify
@@ -34,7 +34,6 @@ require('shinyAce');require('shinydashboard');require('d3heatmap');
 
 shinyUI(navbarPage(title="rTLC",
                    tabPanel("Data input",
-                            # tags$head(includeScript("google-analytics.js")),
                             tags$head(tags$style(type="text/css", "tfoot {display: table-header-group}")),
                             tags$head(tags$style(HTML(".shiny-output-error-validation {color: red;font-size: 24px}"))),
                             tags$head(tags$style(type="text/css", ".shiny-progress .progress {position: absolute;width: 100%;top: 100px;height: 10px;margin: 0px;}")),
@@ -92,7 +91,7 @@ shinyUI(navbarPage(title="rTLC",
                                                         downloadButton('TableDimensionSave','Save the Dimension table'),
                                                         fileInput("TableDimensionUpload","Upload the saved table"),
                                                         plotOutput('TableDimensionPlot')
-                                                        
+
                                                         # hotable("TableDimension")
                                                     )
                                                   )
@@ -126,7 +125,7 @@ shinyUI(navbarPage(title="rTLC",
                                          tabPanel("Prediction (QC only)",
                                                   tableOutput("table2")
                                          )
-                                         
+
                                        )
                                      )
                                      )
@@ -141,7 +140,7 @@ shinyUI(navbarPage(title="rTLC",
                                                choices=c('medianFilter','gammaCorrection','Smoothing','Baseline.correction','Warping','Standard.Normal.Variate',
                                                          'Mean.centering','Autoscaling'),
                                                selected='',multiple=T)
- 
+
                               ),
                               mainPanel(
                                 tabsetPanel(
@@ -152,10 +151,10 @@ shinyUI(navbarPage(title="rTLC",
                                                   h4('Gamma Correction'),
                                                   numericInput('preprocess.gammacorrection','Value',2),
                                                   h4("Smoothing"),
-                                                  helpText(   a("Click Here for help with this smoothing feature",target="_blank",     
+                                                  helpText(   a("Click Here for help with this smoothing feature",target="_blank",
                                                                 href="http://www.inside-r.org/node/206625")
                                                   ),
-                                                  helpText(   a("Wikipedia link",target="_blank",     
+                                                  helpText(   a("Wikipedia link",target="_blank",
                                                                 href="https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter")
                                                   ),
                                                   numericInput("window.size","size of the windows",3,min=3,max=NA,step=2),
@@ -164,7 +163,7 @@ shinyUI(navbarPage(title="rTLC",
                                                   ),
                                            column(3,
                                                   h4("Baseline"),
-                                                  helpText(   a("Click Here for help with the Baseline feature",target="_blank",     
+                                                  helpText(   a("Click Here for help with the Baseline feature",target="_blank",
                                                                 href="http://cran.r-project.org/web/packages/baseline/baseline.pdf")
                                                   ),
                                                   selectizeInput("baseline", "type of baseline", choices=c("als","fillPeaks","irls","lowpass","medianWindow","modpolyfit","peakDetection","rfbaseline","rollingBall"),select=NULL),
@@ -213,12 +212,12 @@ shinyUI(navbarPage(title="rTLC",
                                            ),
                                            column(3,
                                                   h4("Warping"),
-                                                  helpText(   a("Wikipedia link about peak alignment",target="_blank",     
+                                                  helpText(   a("Wikipedia link about peak alignment",target="_blank",
                                                                 href="https://en.wikipedia.org/wiki/Dynamic_time_warping")
                                                   ),
                                                   selectizeInput("warpmethod","Warping method to use",choices=(c("ptw",'dtw')),selected="ptw"),
                                                   conditionalPanel(condition="input.warpmethod=='ptw'",
-                                                                   helpText(   a("Click Here for help with the PTW funtion",target="_blank",     
+                                                                   helpText(   a("Click Here for help with the PTW funtion",target="_blank",
                                                                                  href="http://www.inside-r.org/packages/cran/ptw/docs/ptw")
                                                                    ),
                                                                    #p("The best results I had was with respectively : ref=1, 'c(0,1,0)',individual,WCC,20 "),
@@ -230,7 +229,7 @@ shinyUI(navbarPage(title="rTLC",
                                                                    #numericInput("ptw.trwdth","trwdth",20)
                                                   ),
                                                   conditionalPanel(condition="input.warpmethod=='dtw'",
-                                                                   helpText(   a("Click Here for help with the DTW funtion",target="_blank",     
+                                                                   helpText(   a("Click Here for help with the DTW funtion",target="_blank",
                                                                                  href="http://www.inside-r.org/packages/cran/dtw/docs/dtw")
                                                                    ),
                                                                    uiOutput('ptw.warp.ref.bis'),
@@ -240,10 +239,10 @@ shinyUI(navbarPage(title="rTLC",
                                                   ),
                                            column(3,
                                                   h4("Standardisation"),
-                                                  helpText(   a("Click Here for help with the SNV feature",target="_blank",     
+                                                  helpText(   a("Click Here for help with the SNV feature",target="_blank",
                                                                 href="http://www.inside-r.org/packages/cran/prospectr/docs/standardNormalVariate")
                                                   ),
-                                                  helpText(   a("Click Here for help with the Autoscale feature",target="_blank",     
+                                                  helpText(   a("Click Here for help with the Autoscale feature",target="_blank",
                                                                 href="http://stat.ethz.ch/R-manual/R-devel/library/base/html/scale.html")
                                                   )
                                                   )
@@ -364,18 +363,18 @@ shinyUI(navbarPage(title="rTLC",
                                      column(2,selectizeInput("VS_select_20", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_20'))
                                    )
-                              
+
                             ),
                             column(6,
                                    plotOutput('VS_plot')
                                    )
-                            
+
                             ),
                    navbarMenu("Exploratory Statistics",
                               tabPanel("PCA",
                                        sidebarLayout(
                                          sidebarPanel(
-                                           helpText(   a("Click Here for help with the PCA feature",target="_blank",     
+                                           helpText(   a("Click Here for help with the PCA feature",target="_blank",
                                                          href="http://www.inside-r.org/node/98667")
                                            ),
                                            h4("Choice of the parameters for the PCA"),
@@ -401,7 +400,7 @@ shinyUI(navbarPage(title="rTLC",
                                                       textInput("pca.plot.1.title","title of the graph","Principal Component Analysis"),
                                                       plotOutput("pca.plot.1",height="800px"),
                                                       dataTableOutput("pca.table.1"),
-                                                      verbatimTextOutput("pca.summary.1")       
+                                                      verbatimTextOutput("pca.summary.1")
                                              ),
                                              tabPanel("Loading Plot",
                                                       radioButtons('pca.loading.choice','Componant',choices=seq(10),selected=1),
@@ -440,10 +439,10 @@ shinyUI(navbarPage(title="rTLC",
                               tabPanel("Cluster",  ####### cluster #######
                                        sidebarLayout(
                                          sidebarPanel(
-                                           helpText(   a("Click Here for help with the Cluster feature",target="_blank",     
+                                           helpText(   a("Click Here for help with the Cluster feature",target="_blank",
                                                          href="http://www.inside-r.org/r-doc/stats/dist")
                                            ),
-                                           helpText(   a("and here",target="_blank",     
+                                           helpText(   a("and here",target="_blank",
                                                          href="http://www.inside-r.org/r-doc/stats/hclust")
                                            ),
                                            h4("Ward Hierarchical Clustering parameters"),
@@ -471,7 +470,7 @@ shinyUI(navbarPage(title="rTLC",
                               tabPanel("Heatmap",  ####### Heatmap #######
                                        sidebarLayout(
                                          sidebarPanel(
-                                           helpText(   a("Click Here for help with the Heatmap feature",target="_blank",     
+                                           helpText(   a("Click Here for help with the Heatmap feature",target="_blank",
                                                          href="http://www.inside-r.org/r-doc/stats/heatmap")
                                            ),
                                            h4("Heatmap"),
@@ -504,7 +503,7 @@ shinyUI(navbarPage(title="rTLC",
 ## This is a comment
 ## This feature allow you to directly enter R code to perform data analysis
 ## Two data are used here :
-## data : the chromatograms, they are store in a 3d array 
+## data : the chromatograms, they are store in a 3d array
 ## each row is an observation
 ## each column is a variable (a Retention time)
 ## each layer is a channel (1 for red, 2 for green, 3 for blue and 4 for grey)
@@ -583,7 +582,7 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                   tabPanel("Tuning Options",
                                            fluidRow(
                                              box(title='General Options',width=3,collapsible = F,
-                                                 helpText(   a("Click Here to learn about the Validation techniques",target="_blank",     
+                                                 helpText(   a("Click Here to learn about the Validation techniques",target="_blank",
                                                                href="https://en.wikipedia.org/wiki/Cross-validation_%28statistics%29")
                                                  ),
                                                  selectizeInput('Train.control.method','Validation method for the tunning',
@@ -608,7 +607,7 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                            conditionalPanel(condition = "input.Trainproblem == 'regression'",
                                                             plotOutput('TrainValidMetricsRegPlot')
                                            )
-                                           
+
                                            ),
                                   tabPanel("Prediction table",
                                            dataTableOutput('Train.pred.table')
@@ -669,10 +668,10 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                    ),
                             column(4,h4('Download'),
                                    textInput('mono.knitr.download.text','filename','rTLC-report'),
-                                   downloadButton('mono.knitr.download','Download the report')#,
-#                                    radioButtons('reportformat', 'Document format', c('PDF', 'HTML', 'Word'),
-#                                                 inline = TRUE),
-#                                    downloadButton('downloadReport')
+                                   # downloadButton('mono.knitr.download','Download the report'),
+                                   radioButtons('reportformat', 'Document format', c('PDF', 'HTML', 'Word'),
+                                                inline = TRUE),
+                                   downloadButton('downloadReport')
                                    )
                    ),
 #                    tabPanel('Batch Creator',
@@ -709,8 +708,8 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                          hr(),
                                          HTML('<a href="mailto:p.ristivojevic@gmail.com">Petar Ristivojevic</a> '),
                                          hr(),
-                                         p('Dimitri Fichou and Dr Petar Ristivojević contributed to this application. 
-                                            Both of them discussed about design, visualisation tools and multivariate analysis. 
+                                         p('Dimitri Fichou and Dr Petar Ristivojević contributed to this application.
+                                            Both of them discussed about design, visualisation tools and multivariate analysis.
                                             Mr Fichou designed all features of the application and Dr Petar Ristivojević contributed by ideas and feed backs.'),
                                          hr(''),
                                          p('This application was supported by Pr. Gertrud Morlock and her team at the Justus Liebig University of Giessen and is generously hosted on the university server.')
@@ -727,5 +726,5 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                               )
                             )
                             )
-                   
+
                      ))

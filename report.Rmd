@@ -1,10 +1,12 @@
 ---
-output: html_document
+output: pdf_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(dpi=300, cache=F,echo=F,warning=F,message=F,autodep=T,dev=c("png"))
+```
 
-```{r xtable,echo = FALSE, results = 'asis',message=F}
-options(xtable.comment = FALSE)
+```{r basic, fig.height=3.5,fig.width=7,results='asis'}
 if(input$mono.knitr.file.name == T){
   inFilep <- inFile.photo()
   inFilex <- inFile.X()
@@ -12,11 +14,10 @@ if(input$mono.knitr.file.name == T){
     c("batch file",paste0("picture file ",seq(nrow(inFilep)))),
     c(as.character(inFilex$name),as.character(inFilep$name))
     )
-  print(xtable(data),include.rownames=F,include.colnames=F,type=input$reportformat)
+  # kable(data,row.names=NA,col.names=NA)
+  kable(data)
 }
-```
-
-```{r,echo = FALSE, results = 'asis',fig.height=4,fig.width=8}
+  
   if(input$monoknitrpicture == T){
     par(mar=c(0,0,0,0), xaxt='n',yaxt='n', ann=FALSE)
     par(mfrow=c(1,1))
@@ -42,51 +43,50 @@ if(input$mono.knitr.file.name == T){
       rasterImage(f.read.image(as.character(inFile[n.pic,4]),native=T,format=input$mono.Format.type),0 , 0, largeur, 100)
       for(j in seq(nbr.band)){
         inc <- inc+1
-        text(x=(dist.gauche+tolerance+(j-1)*(band+ecart)),y=90,labels=dataX.mono.pre.pre()[inc,1],col="red",cex=1)
+        text(x=(dist.gauche+tolerance+(j-1)*(band+ecart)),y=90,labels=dataX.edited()[inc,1],col="red",cex=1)
       }
     }
   }
 ```
 
-
-```{r, eval=TRUE ,echo = FALSE, results = 'asis'}
+```{r batch}
+################# batch simple #################
 if(input$mono.knitr.batch.simple == T){
   # kable(dataX.mono.pre())
-  print(xtable(dataX.mono.pre()),include.rownames=F,tabular.environment='longtable',floating=FALSE)
+  # kable(dataX.mono.pre(),row.names=F)
+  kable(dataX.mono.pre(),row.names=F)
 }
 if(input$mono.knitr.batch.pred == T){
   # kable(dataX.mono.pre())
-  print(xtable(cbind(dataX.mono.pre(),Pred.prediction.data())),include.rownames=F,tabular.environment='longtable',floating=FALSE)
+  kable(cbind(dataX.mono.pre(),Pred.prediction.data()),row.names=F)
 }
 ```
 
-```{r,echo = FALSE,fig.height=2.5,fig.width=8}
-
+```{r chrom_before,fig.height=2.5,fig.width=7}
 ### chromatogram juste 2
 if(input$mono.knitr.plot.brut == "2"){
-################# image1  #################   
-  par(mar=c(3,4,2,0),cex.lab=0.75,cex.axis=0.75,mfrow=c(1,2),cex.main=0.75,mgp=c(3,1,0))
-  n.band<-as.numeric(substr(input$name.band.mono.bef.1,7,9))
-  f.plot.array(data.mono.2(),n.band,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
-  n.band<-as.numeric(substr(input$name.band.mono.bef.2,7,9))
-  f.plot.array(data.mono.2(),n.band,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
+################# image1  #################
+  par(mar=c(3,3,2,0),cex.lab=0.75,cex.axis=0.75,cex.main=0.75,mfrow=c(1,2),mgp=c(1.5,0.75,0))
+  n.band<-as.numeric(input$name.band.mono.bef.1)
+  f.plot.array(data.mono.2(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
+  n.band<-as.numeric(input$name.band.mono.bef.2)
+  f.plot.array(data.mono.2(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
 }
 
 
 ### chromatogram all
 
 if(input$mono.knitr.plot.brut == "all"){
-################# image1  #################   
-  par(mar=c(3,4,2,0),cex.lab=0.75,cex.axis=0.75,mfrow=c(1,2),cex.main=0.75,mgp=c(3,1,0))
-  for(i in dataX.mono.pre()$id){
-    f.plot.array(data.mono.2(),i,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
+################# image1  #################
+  par(mar=c(3,3,2,0),cex.lab=0.75,cex.axis=0.75,cex.main=0.75,mfrow=c(1,2),mgp=c(1.5,0.75,0))
+  for(i in seq(nrow(dataX.mono.pre()))){
+    f.plot.array(data.mono.2(),i,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
   }
 }
 ```
 
-```{r,echo = FALSE, results = 'asis',fig.height=2.5,fig.width=8}
-
-  if(input$mono.knitr.preprocess == T){  
+```{r preprocess_table}
+  if(input$mono.knitr.preprocess == T && length(input$Preprocess.order)>0){
     name <- c()
     value <- c()
     for(i in Preprocess.order()){
@@ -99,6 +99,14 @@ if(input$mono.knitr.plot.brut == "all"){
       if(i == 'Standard.Normal.Variate'){
         name <- c(name,i)
         value <- c(value,T)
+      }
+      if(i == 'medianFilter'){
+        name <- c(name,i)
+        value <- c(value,Preprocess.options()[[i]])
+      }
+      if(i == 'gammaCorrection'){
+        name <- c(name,i)
+        value <- c(value,Preprocess.options()[[i]])
       }
       if(i == 'Mean.centering'){
         name <- c(name,i)
@@ -123,31 +131,34 @@ if(input$mono.knitr.plot.brut == "all"){
     }
     truc <- cbind(name, value)
     rownames(truc) <- seq(nrow(truc))
-    print(xtable(truc),include.rownames=F,colnames=F)
+    kable(truc, caption = 'Preprocessing Options')
   }
 ```
 
-```{r,echo = FALSE, results = 'asis',fig.height=2.5,fig.width=8}
+```{r chrom_after,fig.height=2.5,fig.width=7}
+
 ### chromatogram juste 2
 if(input$mono.knitr.plot.net == "2"){
-################# image1  #################   
-  par(mar=c(3,4,2,0),cex.lab=0.75,cex.axis=0.75,mfrow=c(1,2),cex.main=0.75,mgp=c(3,1,0))
-  n.band<-as.numeric(substr(input$name.band.mono.aft.1,7,9))
-  f.plot.array(data.mono.3(),n.band,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
-  n.band<-as.numeric(substr(input$name.band.mono.aft.2,7,9))
-  f.plot.array(data.mono.3(),n.band,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
+################# image1  #################
+  # par(mar=c(3,4,2,0),mfrow=c(1,2),mgp=c(2,0.75,0))
+  par(mar=c(3,3,2,0),cex.lab=0.75,cex.axis=0.75,cex.main=0.75,mfrow=c(1,2),mgp=c(1.5,0.75,0))
+  n.band<-as.numeric(input$name.band.mono.aft.1)
+  f.plot.array(data.mono.3(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
+  n.band<-as.numeric(input$name.band.mono.aft.2)
+  f.plot.array(data.mono.3(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
 }
 
 if(input$mono.knitr.plot.net == "all"){
-################# image1  #################   
-  par(mar=c(3,4,2,0),cex.lab=0.75,cex.axis=0.75,mfrow=c(1,2),cex.main=0.75,mgp=c(3,1,0))
-  for(i in dataX.mono.pre()$id){
-    f.plot.array(data.mono.3(),i,Truc.mono(),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
+################# image1  #################
+  par(mar=c(3,3,2,0),cex.lab=0.75,cex.axis=0.75,cex.main=0.75,mfrow=c(1,2),mgp=c(1.5,0.75,0))
+  for(i in seq(nrow(dataX.mono.pre()))){
+    f.plot.array(data.mono.3(),i,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
   }
 }
 ```
 
-```{r,echo = FALSE, results = 'asis',fig.height=8,fig.width=8}
+```{r PCA_HCA_heatmap,fig.height=7,fig.width=7}
+
 ### PCA
 if(input$mono.knitr.pca.plot == T){
   print(pca.plot.1())
@@ -156,12 +167,17 @@ if(input$mono.knitr.pca.plot == T){
 
 ### cluster
 if(input$mono.knitr.cluster.plot == T){
-  data<-data.cluster.1()
-  if(input$Var.cluster.1 != "id"){rownames(data)<-paste(dataX.mono.pre()[,input$Var.cluster.1],dataX.mono.pre()[,"id"],sep=" , ")}
+    data<-data.cluster.1()
+  if(length(input$Var.cluster.1) == 0){rownames(data)<-dataX.mono.pre()[,"id"]}
+  if(length(input$Var.cluster.1) == 1){rownames(data)<-dataX.mono.pre()[,input$Var.cluster.1]}
+  if(length(input$Var.cluster.1) > 1){rownames(data)<-apply(dataX.mono.pre()[,input$Var.cluster.1],1,paste0,collapse=" - ")}
   d <- dist(data, method = input$method.dist.cluster.1) # distance matrix
   fit <- hclust(d, method=input$method.clust.cluster.1)
+#   label.color <- paste(input$col.cluster.1,collapse=', ')
+#   label.color <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'grey',label.color))))
+  if(nrow(data) > 50){cex.value <- 50/nrow(data)}else{cex.value<-1}
   plot(fit,main="Cluster Dentogram",xlab="",
-       sub=paste0("Distance Method: ",input$method.dist.cluster.1,"\n","Cluster Method: ",input$method.clust.cluster.1)) # display dendogram
+       sub=paste0("Distance Method: ",input$method.dist.cluster.1,"\n","Cluster Method: ",input$method.clust.cluster.1),cex=cex.value) # display dendogram
   groups <- cutree(fit, k=input$cluster.nbr.1)
   rect.hclust(fit, k=input$cluster.nbr.1, border="red")
 }
@@ -173,7 +189,7 @@ if(input$mono.knitr.heatmap.plot == T){
 }
 ```
 
-```{r,echo = FALSE, results = 'asis',fig.height=12,fig.width=10}
+```{r PCA_score_loading,fig.height=7,fig.width=7}
 ### PCA
 if(input$mono.knitr.pca.score.loading == T){
     dataX <- dataX.mono.pre()[,input$col.plot.pca]
@@ -205,7 +221,8 @@ if(input$mono.knitr.pca.score.loading == T){
 }
 ```
 
-```{r,echo = FALSE, results = 'asis',fig.height=8,fig.width=8}
+```{r PCA_score_loading_splitted,fig.height=7,fig.width=7}
+
 ### PCA
 if(input$mono.knitr.pca.score.loading.split == T){
     dataX <- dataX.mono.pre()[,input$col.plot.pca]
@@ -236,14 +253,13 @@ if(input$mono.knitr.pca.score.loading.split == T){
 }
 ```
 
-```{r,echo = FALSE,results = 'asis'}
-## model summary
+```{r variable_selection}
 if(input$mono.knitr.prediction.summary.model == T | input$mono.knitr.var.select ==T){
-  print(xtable(selection.table()),include.rownames=F,colnames=T)
+  kable(selection.table()[selection.table()$use==T,2:4], caption = 'Variables Selection')
 }
 ```
 
-```{r,echo = FALSE}
+```{r model}
 ## model summary
 if(input$mono.knitr.prediction.summary.model == T){
     if(input$filedemouse != 'QC'){
@@ -254,5 +270,29 @@ if(input$mono.knitr.prediction.summary.model == T){
       print(Pred.upload.model()[[1]])
     }
 }
+
+if(length(input$mono.knitr.prediction.validation) != 0){
+  for(i in input$mono.knitr.prediction.validation){
+    if(i == 'Cross-validation data'){
+        x <- Train.model()$pred$obs
+        y <- Train.model()$pred$pred
+      }
+      if(i == 'Training data'){
+        x <- Train.Dep()[Train.partition() == T]
+        y<-Train.prediction()[Train.partition() == T]
+      }
+      if(i == 'Test data'){
+        x <- Train.Dep()[Train.partition() == F]
+        y<-Train.prediction()[Train.partition() == F]
+      }
+    if(input$Trainproblem == 'classification'){
+      print(confusionMatrix(x,y))
+    }else{
+      plot(x=x,y=y,xlab='Observation',ylab='Prediction',
+       main=paste0('Regression Curve: ',i,'\n','R2 = ',cor(x,y)^2,' - RMSE = ',RMSE(x,y)))
+    }
+  }
+}
 ```
+
 

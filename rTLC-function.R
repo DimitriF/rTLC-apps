@@ -92,7 +92,7 @@ f.plot.and.calib<-function(dataX,data,column.mono=input$column.mono,
                           }
                           plot<-plot+geom_text(data=data.plot.unknow,aes(y=masse.pred,x=area,label=id),colour="blue")+
                             geom_point(data=data.plot.unknow,aes(y=masse.pred,x=area),shape=21,size=9,colour="blue")+
-                            coord_flip()                            
+                            coord_flip()
   }
   if(signal.type=="height"){plot<-ggplot()+
                               geom_text(data=data.plot.cal,aes(y=masse,x=height,label=id),colour="red")+
@@ -115,7 +115,7 @@ redim = function(im, w.out, h.out) {
   im.out = matrix(rep(0,w.out*h.out), nrow =w.out, ncol=h.out )
   w_ratio = w.in/w.out
   h_ratio = h.in/h.out
-  im.out <- im[ floor(w_ratio* 1:w.out), floor(h_ratio* 1:h.out)] 
+  im.out <- im[ floor(w_ratio* 1:w.out), floor(h_ratio* 1:h.out)]
   return(im.out)
 }
 f.rebuilt<-function(a,b,c){
@@ -167,7 +167,7 @@ f.eat.image<-function(image,largeur,dist.gauche,band,ecart,tolerance){
   data <- abind(data,apply(data,1:2,mean),along=3)
   return(data)
 }
-f.plot.array<-function(data,id,label,hauteur,Zf,dist.bas,reconstruct=T,xlim=c(-dist.bas/(Zf-dist.bas),(hauteur-dist.bas)/(Zf-dist.bas)),inverse=F,ylim.raster=1.3){
+f.plot.array<-function(data,id,label,hauteur,Zf,dist.bas,reconstruct=T,xlim=c(-dist.bas/(Zf-dist.bas),(hauteur-dist.bas)/(Zf-dist.bas)),inverse=F,ylim.raster=1.3,...){
   if(reconstruct==T){
     if(is.null(label)){
       plot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=as.vector(data[id,,1]),
@@ -219,8 +219,8 @@ f.plot.array<-function(data,id,label,hauteur,Zf,dist.bas,reconstruct=T,xlim=c(-d
          ylim=c(min(data),max(data)),xlim=xlim,xlab='',ylab='',
          type="l",col="black")
   }
-  mtext(side = 1, expression("R"['F']), line = 2)
-  mtext(side = 2, "Intensity", line = 2)
+  mtext(side = 1, expression("R"['F']), line = 2,...)
+  mtext(side = 2, "Intensity", line = 2,...)
 }
 
 do.VPdtw <- function(data,ref,dataX,maxshift=50,Reference.type=c("random","median","mean","trimmed")){
@@ -235,7 +235,7 @@ do.VPdtw <- function(data,ref,dataX,maxshift=50,Reference.type=c("random","media
     data.b<-VPdtw(reference = NULL,data[,,2],maxshift=maxshift,Reference.type=Reference.type)$warpedQuery
     data.c<-VPdtw(reference = NULL,data[,,3],maxshift=maxshift,Reference.type=Reference.type)$warpedQuery
     data.d<-VPdtw(reference = NULL,data[,,4],maxshift=maxshift,Reference.type=Reference.type)$warpedQuery
-    
+
   }
   data<-abind(data.a,data.b,data.c,data.d,along=3)
   print(dim(data))

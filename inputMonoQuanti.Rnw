@@ -1,5 +1,5 @@
 %%%% License %%%%
-%Copyright (C) {2014}  {Fichou Dimitri} 
+%Copyright (C) {2014}  {Fichou Dimitri}
 %{dimitrifichou@laposte.net}
 
 %This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 \documentclass[a4paper]{article}
 \usepackage{geometry}
 \usepackage{eso-pic}
-\usepackage{graphicx} 
+\usepackage{graphicx}
 \usepackage{longtable}
 \usepackage[utf8]{inputenc}
 \geometry{verbose,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
@@ -44,7 +44,7 @@ if(input$mono.knitr.file.name == T){
     )
   print(xtable(data),include.rownames=F,include.colnames=F)
 }
-  
+
   if(input$monoknitrpicture == T){
     par(mar=c(0,0,0,0), xaxt='n',yaxt='n', ann=FALSE)
     par(mfrow=c(1,1))
@@ -74,8 +74,6 @@ if(input$mono.knitr.file.name == T){
       }
     }
   }
-  
-  
 @
 
 <<eval=TRUE ,echo = FALSE, results = 'asis'>>=
@@ -96,7 +94,7 @@ if(input$mono.knitr.batch.pred == T){
 
 ### chromatogram juste 2
 if(input$mono.knitr.plot.brut == "2"){
-################# image1  #################   
+################# image1  #################
   par(mar=c(3,4,2,0),cex.lab=0.75,cex.axis=0.75,mfrow=c(1,2),cex.main=0.75,mgp=c(3,1,0))
   n.band<-as.numeric(input$name.band.mono.bef.1)
   f.plot.array(data.mono.2(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
@@ -108,7 +106,7 @@ if(input$mono.knitr.plot.brut == "2"){
 ### chromatogram all
 
 if(input$mono.knitr.plot.brut == "all"){
-################# image1  #################   
+################# image1  #################
   par(mar=c(3,4,2,0),cex.lab=0.75,cex.axis=0.75,mfrow=c(1,2),cex.main=0.75,mgp=c(3,1,0))
   for(i in seq(nrow(dataX.mono.pre()))){
     f.plot.array(data.mono.2(),i,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
@@ -120,7 +118,7 @@ if(input$mono.knitr.plot.brut == "all"){
 
 <<echo = FALSE, results = 'asis',fig.height=2.5,fig.width=8>>=
 
-  if(input$mono.knitr.preprocess == T){  
+  if(input$mono.knitr.preprocess == T){
     name <- c()
     value <- c()
     for(i in Preprocess.order()){
@@ -173,7 +171,7 @@ if(input$mono.knitr.plot.brut == "all"){
 
 ### chromatogram juste 2
 if(input$mono.knitr.plot.net == "2"){
-################# image1  #################   
+################# image1  #################
   par(mar=c(3,4,2,0),cex.lab=0.75,cex.axis=0.75,mfrow=c(1,2),cex.main=0.75,mgp=c(3,1,0))
   n.band<-as.numeric(input$name.band.mono.aft.1)
   f.plot.array(data.mono.3(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
@@ -182,7 +180,7 @@ if(input$mono.knitr.plot.net == "2"){
 }
 
 if(input$mono.knitr.plot.net == "all"){
-################# image1  #################   
+################# image1  #################
   par(mar=c(3,4,2,0),cex.lab=0.75,cex.axis=0.75,mfrow=c(1,2),cex.main=0.75,mgp=c(3,1,0))
   for(i in seq(nrow(dataX.mono.pre()))){
     f.plot.array(data.mono.3(),i,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
