@@ -1,0 +1,10 @@
+basic	==	$	as.character	as.numeric	c	cbind	dataX.edited	F	for	f.read.image	if	inFile.photo	inFile.X	input	nrow	par	paste0	plot	print	rasterImage	round	seq	T	TableDimension	text	xtable
+batch	==	$	cbind	dataX.mono.pre	F	if	input	Pred.prediction.data	print	T	xtable
+chrom_before	==	$	as.numeric	c	data.mono.2	dataX.mono.pre	for	f.plot.array	if	input	names	nrow	par	seq	Truc.mono
+preprocess_table	==	[[	$	c	cbind	F	for	if	input	names	nrow	Preprocess.options	Preprocess.order	print	rownames<-	seq	T	xtable
+chrom_after	==	$	as.numeric	c	data.mono.3	dataX.mono.pre	F	for	f.plot.array	if	input	names	nrow	par	seq	Truc.mono
+PCA_HCA_heatmap	==	!=	$	cutree	data.cluster.1	data.heatmap	dataX.mono.pre	dim	dist	hclust	heatmap	if	input	paste	paste0	pca.plot.1	plot	print	rect.hclust	rev	rownames<-	seq	T
+PCA_score_loading	==	$	as.matrix	axis	c	data.mono.3	dataX.mono.pre	expression	factor	for	if	input	legend	length	loadings.PCA	mtext	par	paste0	PCA	plot	round	scoreplot	seq	T	unique
+PCA_score_loading_splitted	==	$	as.matrix	axis	c	data.mono.3	dataX.mono.pre	expression	factor	for	if	input	legend	length	loadings.PCA	par	paste0	PCA	plot	round	scoreplot	seq	T	unique
+variable_selection	==	|	$	F	if	input	print	selection.table	T	xtable
+model	^	==	!=	[[	$	confusionMatrix	cor	F	for	if	input	length	paste0	plot	Pred.upload.model	print	RMSE	T	Train.Dep	Train.model	Train.partition	Train.prediction

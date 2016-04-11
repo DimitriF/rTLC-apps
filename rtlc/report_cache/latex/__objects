@@ -1,0 +1,10 @@
+basic	band	data	dist.gauche	ecart	i	inc	inFile	inFilep	inFilex	j	largeur	nbr.band	n.pic	tolerance
+batch	
+chrom_before	i
+preprocess_table	i
+chrom_after	i
+PCA_HCA_heatmap	data
+PCA_score_loading	data	i
+PCA_score_loading_splitted	data	i
+variable_selection	
+model	i
