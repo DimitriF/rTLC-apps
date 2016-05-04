@@ -946,6 +946,11 @@ pca.plot.1<-reactive({
     plot<-plot+geom_text(data=data,aes(x=PC1,y=PC2,label=Label),hjust=as.numeric(input$hjust.pca),vjust=as.numeric(input$vjust.pca))
   }
   if(input$pca.ellipse == T){plot <- plot+ stat_ellipse(data=data,aes(x=PC1,y=PC2,col=Color),level=input$pca.ellipse.level)}
+  
+  plot <- plot +theme(axis.text=element_text(size=18),
+                      axis.title=element_text(size=18),
+                      plot.title = element_text(size=20))+
+    geom_vline(xintercept = 0) + geom_hline(yintercept = 0)
   return(plot+ggtitle(input$pca.plot.1.title))
 })
 output$pca.plot.1<-renderPlot({
@@ -1376,7 +1381,7 @@ output$Train.down.model.text <- renderUI({
 })
 
 output$Train.down.model <- downloadHandler(
-  filename = function(x){paste0(input$Train.down.model.text,'.Rdata')},
+  filename = function(x){paste0(input$Train.down.model.text,'.RData')},
   content = function(con) {
     assign('data',list(model = Train.model(),
                        origine.data = data.mono.2()[Train.partition(),,],
