@@ -937,7 +937,8 @@ pca.plot.1<-reactive({
     data$Color<-data[,input$col.plot.pca]
     data$Shape<-data[,input$shape.plot.pca]
     plot<-ggplot()+geom_point(data=data,aes(x=PC1,y=PC2,col=Color,shape=Shape),size=as.numeric(input$cex.pca))+
-      labs(x=xlabel, y=ylabel) 
+      labs(x=xlabel, y=ylabel) +
+      scale_color_brewer(palette=input$pca.col.palette) # add here the color palette ref
   }
 #   if(input$plotlyPCA==T){
 #     p <- plotly(username=input$plot.ly.user, key=input$plot.ly.key)
