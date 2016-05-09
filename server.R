@@ -1,8 +1,8 @@
 #### License ####
 #Copyright (C) {2014}  {Fichou Dimitri}
 #{dimitrifichou@laposte.net}
-
-#This program is free software; you can redistribute it and/or modify
+ 
+#This program is free software; you can redistribute it and/or modify 
 #it under the terms of the GNU General Public License as published by
 #the Free Software Foundation; either version 2 of the License, or
 # any later version.
@@ -44,7 +44,8 @@ MAC.inverse=F
 shinyServer(function(input, output,session) {
 #   session$onSessionEnded(function() {
 #     obs$suspend()
-#   })
+#   }
+
   #### demo batch #####
   output$download.demo.batch <- downloadHandler(
     filename = "rTLC_demobatch.xls",
@@ -929,13 +930,14 @@ pca.plot.1<-reactive({
   if(input$col.plot.pca != "None" & input$shape.plot.pca == "None"){
     data$Color<-data[,input$col.plot.pca]
     plot<-ggplot()+geom_point(data=data,aes(x=PC1,y=PC2,col=Color),size=as.numeric(input$cex.pca))+
-      labs(x=xlabel, y=ylabel)
-  }
+      labs(x=xlabel, y=ylabel) +
+      scale_color_brewer(palette=input$pca.col.palette) # add here the color palette ref
+    }
   if(input$col.plot.pca != "None" & input$shape.plot.pca != "None"){
     data$Color<-data[,input$col.plot.pca]
     data$Shape<-data[,input$shape.plot.pca]
     plot<-ggplot()+geom_point(data=data,aes(x=PC1,y=PC2,col=Color,shape=Shape),size=as.numeric(input$cex.pca))+
-      labs(x=xlabel, y=ylabel)
+      labs(x=xlabel, y=ylabel) 
   }
 #   if(input$plotlyPCA==T){
 #     p <- plotly(username=input$plot.ly.user, key=input$plot.ly.key)
@@ -1520,6 +1522,12 @@ output$sessionInfo <- renderPrint({
   sessionInfo()
 })
 
-
-
+outputOptions(output, "table1", suspendWhenHidden = FALSE)
+outputOptions(output, "batch.Truc.mono", suspendWhenHidden = FALSE)
+outputOptions(output, "batch.filter", suspendWhenHidden = FALSE)
+outputOptions(output, "ptw.warp.ref", suspendWhenHidden = FALSE)
+outputOptions(output, "ptw.warp.ref.bis", suspendWhenHidden = FALSE)
+for(i in seq(20)){
+  outputOptions(output, paste0("VS_slider_",i), suspendWhenHidden = FALSE)
+}
 })
