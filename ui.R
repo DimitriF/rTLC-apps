@@ -91,8 +91,6 @@ shinyUI(navbarPage(title="rTLC",
                                                         downloadButton('TableDimensionSave','Save the Dimension table'),
                                                         fileInput("TableDimensionUpload","Upload the saved table"),
                                                         plotOutput('TableDimensionPlot')
-
-                                                        # hotable("TableDimension")
                                                     )
                                                   )
                                          ),
@@ -671,12 +669,16 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                    checkboxInput('mono.knitr.prediction.summary.model','Print model summary',F),
                                    checkboxGroupInput('mono.knitr.prediction.validation','Print the validation results for ',choices=c('Cross-validation data','Training data','Test data'))
                                    ),
-                            column(4,h4('Download'),
+                            column(2,h4('Report Download'),
                                    textInput('mono.knitr.download.text','filename','rTLC-report'),
                                    # downloadButton('mono.knitr.download','Download the report'),
                                    radioButtons('reportformat', 'Document format', c('PDF', 'HTML', 'Word'),
                                                 inline = TRUE),
                                    downloadButton('downloadReport')
+                                   ),
+                            column(2,h4("Data Download"),
+                                   textInput('data.download.zip.text','filename','rTLC_data_export'),
+                                   downloadButton("data.download.zip",'Save zip file with data inside')
                                    )
                    ),
 #                    tabPanel('Batch Creator',

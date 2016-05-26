@@ -235,13 +235,13 @@ shinyServer(function(input, output,session) {
         need(colnames(data)[1] == "id", "The first column of your batch is not 'id'"),
         need(data[,1] == seq(1:nrow(data)) , "Your id column is not a sequence of number starting from 1")
       )
-    Not.Use <- paste0("<input id='Not.Use.", 1:nrow(data), "' class='shiny-bound-input' type='checkbox' value='1'>")
+    Not.Use <- paste0("<input id='Not.Use.", 1:nrow(data), "' class='form-control shiny-bound-input' type='checkbox' value='1'></input>")
     for(i in c(2:ncol(data))){
-      data[,i] <- paste0("<input id='",colnames(data)[i],'.', 1:nrow(data),"' class='shiny-bound-input' type='text' value='",data[,i],"'>")
+      data[,i] <- paste0("<input id='",colnames(data)[i],'.', 1:nrow(data),"' class='form-control shiny-bound-input' type='text' value='",data[,i],"'></input>")
     }
     data <- data.frame(cbind(Not.Use,data))
     return(data)
-  }, sanitize.text.function = function(y) y)
+  }, sanitize.text.function = function(x) x)
   output$batch.Truc.mono <- renderUI({
     data <- colnames(dataX.edited())
     if(length(data) <= 4){
@@ -389,17 +389,6 @@ shinyServer(function(input, output,session) {
     }
   )
 
-#   output$TableDimension <-renderHotable({
-#     inFile <- inFile.photo()
-#     truc <- nrow(inFile)
-#     data <- data.frame(width_of_the_plate = rep(20,truc),
-#                        left_distance = rep(2,truc),
-#                        band_width = rep(0.6,truc),
-#                        gap_between_band = rep(0.2,truc),
-#                        tolerance_for_the_calcul = rep(0.2,truc)
-#     )
-#     data
-#   }, readOnly=F)
 
   TableDimension <- reactive({
     # hot.to.df(input$TableDimension)
@@ -1517,6 +1506,25 @@ output$downloadReport <- downloadHandler(
     ))
     file.rename(out, file)
   }
+)
+
+output$data.download.zip <- downloadHandler(
+  filename = function(x){paste0(input$data.download.zip.text,'.zip')},
+  content = function(file) {
+    fs <- c()
+    for(i in c("batch.PCA")){# for boucle where each df of interest will be created and put in the fs path object.
+      path <- paste0(i,'.csv')
+      fs <- c(fs,path)
+      if(i == "batch.PCA"){
+        data <- cbind(dataX.mono.pre(),Train.partition(),model.pca()$scores)
+      }
+      write.csv(data,file=path,row.names = F,col.names = F,sep=';')
+    }
+    tempFile <- tempfile(fileext = ".zip")
+    zip(zipfile=tempFile, files=fs)
+    file.rename(tempFile, file)
+  },
+  contentType = "application/zip"
 )
 
 output$sessionInfo <- renderPrint({
