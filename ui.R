@@ -677,6 +677,7 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                    downloadButton('downloadReport')
                                    ),
                             column(2,h4("Data Download"),
+                                   checkboxGroupInput("data.download.choice","content",choices = c("batch.PCA","loading.PCA")),
                                    textInput('data.download.zip.text','filename','rTLC_data_export'),
                                    downloadButton("data.download.zip",'Save zip file with data inside')
                                    )

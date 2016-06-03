@@ -1512,11 +1512,14 @@ output$data.download.zip <- downloadHandler(
   filename = function(x){paste0(input$data.download.zip.text,'.zip')},
   content = function(file) {
     fs <- c()
-    for(i in c("batch.PCA")){# for boucle where each df of interest will be created and put in the fs path object.
+    for(i in input$data.download.choice){# for boucle where each df of interest will be created and put in the fs path object.
       path <- paste0(i,'.csv')
       fs <- c(fs,path)
       if(i == "batch.PCA"){
         data <- cbind(dataX.mono.pre(),Train.partition(),model.pca()$scores)
+      }
+      if(i == "loading.PCA"){
+        data <- model.pca()$loadings
       }
       write.csv(data,file=path,row.names = F,col.names = F,sep=';')
     }
