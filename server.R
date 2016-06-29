@@ -106,7 +106,12 @@ shinyServer(function(input, output,session) {
       for(i in names(channel)){
         path <- paste0(i,'.csv')
         fs <- c(fs,path)
-        write.csv(data.mono.2()[,dim(data.mono.2())[2]:1,channel[i]],file=path,row.names = F,col.names = F,sep=';')
+        truc = data.mono.2()[,dim(data.mono.2())[2]:1,channel[i]]
+        hauteur = as.numeric(input$hauteur.mono)
+        dist.bas = as.numeric(input$dist.bas.mono)
+        Zf = as.numeric(input$Zf.mono)
+        colnames(truc) = paste0("Rf.",round(seq(-dist.bas/(Zf-dist.bas),(hauteur-dist.bas)/(Zf-dist.bas),length.out=dim(truc)[2]),3))
+        write.csv(truc,file=path,row.names = F,col.names = F,sep=';')
       }
       path = paste0('batch','.csv')
       fs = c(fs,path)
@@ -765,7 +770,7 @@ Train.partition <- reactive({
     par(mfrow=c(1,2))
     selection <- selection.table()
     min=RF.min();max=RF.max()
-    plot(c(min,max),c(1,20),type='n',xlab = 'Rf',ylab = 'index',main='Scheme of the varaible selection')
+    plot(c(min,max),c(1,20),type='n',xlab = 'Rf',ylab = 'index',main='Scheme of the variable selection')
     selection$channel <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'grey',selection$channel))))
 
     for(i in seq(20)){
@@ -773,7 +778,7 @@ Train.partition <- reactive({
         arrows(x0=selection[i,3], y0=i, x1 =selection[i,4],col=selection[i,2],code=3,length=0.1)
       }
     }
-    plot(x=seq(dim(data.mono.4())[2]),data.mono.4()[1,dim(data.mono.4())[2]:1],type='l',main='Result for the first sample',xlan='index',ylab='intensity')
+    plot(x=seq(dim(data.mono.4())[2]),data.mono.4()[1,dim(data.mono.4())[2]:1],type='l',main='Result for the first sample',xlab='index',ylab='intensity')
   })
 
 
@@ -941,8 +946,8 @@ pca.plot.1<-reactive({
   
   plot <- plot +theme(axis.text=element_text(size=18),
                       axis.title=element_text(size=18),
-                      plot.title = element_text(size=20))+
-    geom_vline(xintercept = 0) + geom_hline(yintercept = 0)
+                      plot.title = element_text(size=20))
+  if(input$pca.axis){plot <- plot + geom_vline(xintercept = 0) + geom_hline(yintercept = 0)}
   return(plot+ggtitle(input$pca.plot.1.title))
 })
 output$pca.plot.1<-renderPlot({

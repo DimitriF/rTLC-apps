@@ -15,7 +15,7 @@ if(input$mono.knitr.file.name == T){
     c(as.character(inFilex$name),as.character(inFilep$name))
     )
   # kable(data,row.names=NA,col.names=NA)
-  kable(data)
+  kable(data, caption = 'Files')
 }
   
   if(input$monoknitrpicture == T){
@@ -133,6 +133,12 @@ if(input$mono.knitr.plot.brut == "all"){
     rownames(truc) <- seq(nrow(truc))
     kable(truc, caption = 'Preprocessing Options')
   }
+```
+
+```{r variable_selection}
+if(input$mono.knitr.prediction.summary.model == T | input$mono.knitr.var.select ==T){
+  kable(selection.table()[selection.table()$use==T,2:4], caption = 'Variables Selection')
+}
 ```
 
 ```{r chrom_after,fig.height=2.5,fig.width=7}
@@ -253,11 +259,7 @@ if(input$mono.knitr.pca.score.loading.split == T){
 }
 ```
 
-```{r variable_selection}
-if(input$mono.knitr.prediction.summary.model == T | input$mono.knitr.var.select ==T){
-  kable(selection.table()[selection.table()$use==T,2:4], caption = 'Variables Selection')
-}
-```
+
 
 ```{r model}
 ## model summary

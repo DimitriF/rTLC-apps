@@ -393,6 +393,7 @@ shinyUI(navbarPage(title="rTLC",
                                            selectizeInput('PCA.comp.a', '1st componant for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC1"),
                                            selectizeInput('PCA.comp.b', '2nd componant for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC2"),
                                            checkboxInput('pca.ellipse','Plot the ellipse according to the color',F),
+                                           checkboxInput('pca.axis','Plot the axis',F),
                                            numericInput('pca.ellipse.level','Level to calculate the ellipse',0.95),
                                            selectizeInput("pca.col.palette","palette color (if color used)",choices = c("Set1","Set2","Set3","Greys","Spectral","Pastel1","Pastel2","Paired","Dark2","Accent")),
                                            tableOutput("Table.dim.just.pca.label")
