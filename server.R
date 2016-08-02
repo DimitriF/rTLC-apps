@@ -651,9 +651,9 @@ Train.partition <- reactive({
     choices <- Truc.mono()[Train.partition()]
     selectizeInput('ptw.warp.ref','Select the track to use as reference',choices=choices)
   })
-  output$ptw.warp.ref.bis <- renderUI({
+  output$dtw.warp.ref <- renderUI({
     choices <- Truc.mono()[Train.partition()]
-    selectizeInput('ptw.warp.ref','Select the track to use as reference',choices=choices)
+    selectizeInput('dtw.warp.ref','Select the track to use as reference',choices=choices)
   })
   Preprocess.options <- reactive({
     if(input$filedemouse != 'QC'){
@@ -666,7 +666,7 @@ Train.partition <- reactive({
       }
       if(input$warpmethod == 'dtw'){
         Warping <- list(warpmethod = input$warpmethod,
-                        dtw.warp.ref = as.numeric(input$ptw.warp.ref),
+                        dtw.warp.ref = as.numeric(input$dtw.warp.ref),
                         dtw.split = input$dtw.split
         )
       }
@@ -975,7 +975,7 @@ output$select.shape.plot.pca<-renderUI({
   selectizeInput("shape.plot.pca","Choice of the shape (no more than 5 or it's not shown)",choices=c("None",colnames(dataX.mono.pre())),selected="None")
 })
 output$select.label.plot.pca<-renderUI({
-  selectizeInput("label.plot.pca","Choice of the label (location to chose bellow)",choices=c("None",colnames(dataX.mono.pre())),selected="None")
+  selectizeInput("label.plot.pca","Choice of the label (location to choose below)",choices=c("None",colnames(dataX.mono.pre())),selected="None")
 })
 output$Table.dim.just.pca.label <-renderTable({
   hjust <- paste0("<input id='hjust.pca", "' class='shiny-bound-input' type='text' value='0'>")
@@ -1543,7 +1543,7 @@ outputOptions(output, "table1", suspendWhenHidden = FALSE)
 outputOptions(output, "batch.Truc.mono", suspendWhenHidden = FALSE)
 outputOptions(output, "batch.filter", suspendWhenHidden = FALSE)
 outputOptions(output, "ptw.warp.ref", suspendWhenHidden = FALSE)
-outputOptions(output, "ptw.warp.ref.bis", suspendWhenHidden = FALSE)
+outputOptions(output, "dtw.warp.ref", suspendWhenHidden = FALSE)
 for(i in seq(20)){
   outputOptions(output, paste0("VS_slider_",i), suspendWhenHidden = FALSE)
 }

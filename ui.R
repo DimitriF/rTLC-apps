@@ -136,6 +136,8 @@ shinyUI(navbarPage(title="rTLC",
                    tabPanel("Data preprocessing",
                             sidebarLayout(
                               sidebarPanel(
+                                sliderInput('Train.partition','Part of data to train with (use it for predictive statistics)',min=0,max=1,value = 1),
+                                
                                 h4("Here you can choose different data preprocessing before starting the analysis."),
                                 tags$hr(),
                                 selectizeInput('Preprocess.order','Preprocess choice (order is important)',
@@ -234,7 +236,7 @@ shinyUI(navbarPage(title="rTLC",
                                                                    helpText(   a("Click Here for help with the DTW funtion",target="_blank",
                                                                                  href="http://www.inside-r.org/packages/cran/dtw/docs/dtw")
                                                                    ),
-                                                                   uiOutput('ptw.warp.ref.bis'),
+                                                                   uiOutput('dtw.warp.ref'),
                                                                    # numericInput("ptw.warp.ref","id of the reference",1),
                                                                    checkboxInput('dtw.split','Do the alignment on the 4 channels separatly',F)
                                                   )
@@ -372,7 +374,7 @@ shinyUI(navbarPage(title="rTLC",
                                    )
 
                             ),
-                   navbarMenu("Exploratory Statistics",
+                   navbarMenu("Exploratory statistics",
                               tabPanel("PCA",
                                        sidebarLayout(
                                          sidebarPanel(
@@ -390,8 +392,8 @@ shinyUI(navbarPage(title="rTLC",
                                            # checkboxGroupInput("col.pca", "Channel to select for the PCA", choices=c("red"=1,"green"=2,"blue"=3,"grey"=4),select=seq(4)),
                                            tags$hr(),
                                            h4("Other options"),
-                                           selectizeInput('PCA.comp.a', '1st componant for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC1"),
-                                           selectizeInput('PCA.comp.b', '2nd componant for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC2"),
+                                           selectizeInput('PCA.comp.a', '1st component for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC1"),
+                                           selectizeInput('PCA.comp.b', '2nd component for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC2"),
                                            checkboxInput('pca.ellipse','Plot the ellipse according to the color',F),
                                            checkboxInput('pca.axis','Plot the axis',F),
                                            numericInput('pca.ellipse.level','Level to calculate the ellipse',0.95),
@@ -566,10 +568,9 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                          )
                                        )
                                        ),
-                   tabPanel("Predictive statisitcs",
+                   tabPanel("Predictive statistics",
                             sidebarLayout(
                               sidebarPanel(width = 3,
-                                           sliderInput('Train.partition','Part of data to train with (the preprocess will be rerun if changed)',min=0,max=1,value = 0.75),
                                            uiOutput('Train.model.algo'),
                                            uiOutput('Train.model.algo.wiki'),
                                            uiOutput("Train.column"),
