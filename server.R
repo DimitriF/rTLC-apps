@@ -19,19 +19,17 @@
 
 
 
-require("jpeg");require("png");require('tiff');require('caret');require('klaR');require('xlsx');
-require("ChemometricsWithR");require("gplots");require("kohonen");require("devtools");
-require("chemometrics");require("ggplot2");require("abind");require("plyr");require('dplyr');
-require("prospectr");require("DiscriMiner");require("baseline");require("knitr");require('rmarkdown');
-require("xtable");require("ptw");require("dtw");
-require('d3heatmap');require('randomForest');require('kernlab');require('ipred');
+require("jpeg");require("png");require('tiff');
+require('caret');require('klaR');require('xlsx');
+require("ChemometricsWithR");require("gplots");require("kohonen");
+require("devtools");require("chemometrics");require("ggplot2");
+require("abind");require("plyr");require('dplyr');
+require("prospectr");require("DiscriMiner");require("baseline");
+require("knitr");require('rmarkdown');require("xtable");
+require("ptw");require("dtw");require('d3heatmap');
+require('randomForest');require('kernlab');require('ipred');
 require('extraTrees');require('evtree');require('FBN')
-
-# require('EBImage')
-
-# require('shinyRGL');require('rgl')
-
-require('shinyAce');require('shinydashboard');
+require("threejs");require('shinyAce');require('shinydashboard');
 
 
 options(shiny.maxRequestSize=1000*1024^2)
@@ -69,7 +67,7 @@ shinyServer(function(input, output,session) {
   output$manual.pdf <- downloadHandler(
     filename = "rTLC_manual.pdf",
     content = function(file) {
-      file.copy('www/rTLC manual.pdf', file)
+      file.copy('www/rTLC_manual.pdf', file)
     }
   )
   output$help.global.pipeline <- renderImage({
@@ -92,7 +90,8 @@ shinyServer(function(input, output,session) {
     content = function(con) {
       assign("data",list(chrom = data.mono.2(),
                          batch = dataX.mono.pre(),
-                         Vertical.dim = c(dim(data.mono.2())[2],input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
+                         Vertical.dim = c(dim(data.mono.2())[2],input$hauteur.mono,input$Zf.mono,input$dist.bas.mono),
+                         Horizontale.dim = TableDimension()
                          ))
       save(list="data", file=con)
     }
@@ -102,7 +101,7 @@ shinyServer(function(input, output,session) {
     filename = function(x){paste0(input$checkpoint.1.download.zip.text,'.zip')},
     content = function(file) {
       fs <- c()
-      channel <- c(red=1,green=2,blue=3,grey=4)
+      channel <- c(red=1,green=2,blue=3,gray=4)
       for(i in names(channel)){
         path <- paste0(i,'.csv')
         fs <- c(fs,path)
@@ -127,12 +126,18 @@ shinyServer(function(input, output,session) {
         validate(
           need(input$filedemouse != "checkpoint", "Picture and dimension table not available, chromatograms already extracted.")
         )
-    if(input$filedemouse == 'YourOwnData' | input$filedemouse == 'QC'){
+    if(input$filedemouse == 'YourOwnData'){
       validate(
-        need(input$filemonop != "", "Please upload your(s) picture(s) or choose to use the demo files")
+        need(input$filemonop != "", "Upload your chromatogram(s) or choose the demonstration files")
       )
       inFile<- input$filemonop
     }
+      if(input$filedemouse == 'QC'){
+        validate(
+          need(input$filemonop != "", "Upload your chromatogram(s)")
+        )
+        inFile<- input$filemonop
+      }
     if(input$filedemouse == 'demo1'){
       inFile<- data.frame(name = 'rTLC_demopicture.JPG',size=T,type='JPG',datapath = 'www/rTLC_demopicture.JPG')
     }
@@ -160,6 +165,14 @@ shinyServer(function(input, output,session) {
                           datapath = paste0('www/',name)
       )
     }
+      if(input$filedemouse == 'demoPropolis'){
+        name = dir('www',patter='propolis-silicate')
+        inFile<- data.frame(name = name,
+                            size=rep(T,length(name)),
+                            type=rep('jpg',length(name)),
+                            datapath = paste0('www/',name)
+        )
+      }
     inFile
   })
 
@@ -186,6 +199,9 @@ shinyServer(function(input, output,session) {
     if(input$filedemouse == 'demo4'){
       inFile <- data.frame(name = 'rTLC_demobatch.xls',size=T,type='xls',datapath = 'www/rTLC_demobatch_4.xls')
     }
+    if(input$filedemouse == 'demoPropolis'){
+      inFile <- data.frame(name = 'rTLC_demobatch.xls',size=T,type='xls',datapath = 'www/rTLC_propolis_batch.xlsx')
+    }
     return(inFile)
   })
   dataX.editable <- reactive({
@@ -196,23 +212,26 @@ shinyServer(function(input, output,session) {
       inFile <- input$checkpoint.1.upload
       load(inFile[1,4])
       data <- data[[2]]
-      data$id <- seq(nrow(data))
+      colnames(data)[colnames(data) == "id"] <- "ID"
+      data$ID <- seq(nrow(data))
+    }else if(input$filedemouse == 'demoPropolis'){ # special case for the propolis dataset, I didn't saved the dimension table and we wanted the same exact independent variables than in the paper's figures
+      load("www/Propolis silica_dim_ok.Rdata")
+      data <- data[[2]]
     }else{
       inFile <- inFile.X()
       if(is.null(inFile)){
         data <- data.mono.1.1()
-        data <- data.frame(id = seq(dim(data)[1]),class = rep('unknow',dim(data)[1]),ref = rep('unknow',dim(data)[1]),info=rep('unknow',dim(data)[1]))
+        data <- data.frame(ID = seq(dim(data)[1]),class = rep('unknow',dim(data)[1]),ref = rep('unknow',dim(data)[1]),info=rep('unknow',dim(data)[1]))
       }else{
         data <- read.xlsx(as.character(inFile[1,4]),sheetIndex=1)
       }
-      if(colnames(data)[1] != 'id' & 'id' %in% colnames(data)){
-        colnames(data)[which(colnames(data) == 'id')] <- 'id2'
+      if(colnames(data)[1] != 'ID' & 'ID' %in% colnames(data)){
+        colnames(data)[which(colnames(data) == 'ID')] <- 'ID2'
       }
-      if(!'id' %in% colnames(data)){
-        data <- cbind(id=seq(nrow(data)),data)
+      if(!'ID' %in% colnames(data)){
+        data <- cbind(ID=seq(nrow(data)),data)
       }
     }
-    # data$id <- seq(nrow(data))
     rownames(data) <- seq(nrow(data))
     data
   })
@@ -224,8 +243,8 @@ shinyServer(function(input, output,session) {
     }
     validate(
       need(length(colnames(data)) >= 2, "Your batch must contain at least 1 columns"),
-      need(colnames(data)[1] == "id", "The first column of your batch is not 'id'"),
-      need(data[,1] == seq(1:nrow(data)) , "Your id column is not a sequence of number starting from 1")
+      need(colnames(data)[1] == "ID", "The first column of your batch is not 'ID'"),
+      need(data[,1] == seq(1:nrow(data)) , "Your ID column is not a sequence of number starting from 1")
     )
     data
   })
@@ -237,22 +256,23 @@ shinyServer(function(input, output,session) {
       data <- dataX.editable()
       validate(
         need(length(colnames(data)) >= 2, "Your batch must contain at least 1 columns"),
-        need(colnames(data)[1] == "id", "The first column of your batch is not 'id'"),
-        need(data[,1] == seq(1:nrow(data)) , "Your id column is not a sequence of number starting from 1")
+        need(colnames(data)[1] == "ID", "The first column of your batch is not 'ID'"),
+        need(data[,1] == seq(1:nrow(data)) , "Your ID column is not a sequence of number starting from 1")
       )
     Not.Use <- paste0("<input id='Not.Use.", 1:nrow(data), "' class='form-control shiny-bound-input' type='checkbox' value='1'></input>")
     for(i in c(2:ncol(data))){
       data[,i] <- paste0("<input id='",colnames(data)[i],'.', 1:nrow(data),"' class='form-control shiny-bound-input' type='text' value='",data[,i],"'></input>")
     }
     data <- data.frame(cbind(Not.Use,data))
+    colnames(data)[1:2] = c("Exclude","ID")
     return(data)
   }, sanitize.text.function = function(x) x)
   output$batch.Truc.mono <- renderUI({
     data <- colnames(dataX.edited())
     if(length(data) <= 4){
-      checkboxGroupInput('batch.Truc.mono','Information to include in the track chromatograms plot',choices=data[2:length(data)],selected=data[2:length(data)],inline=T)
+      checkboxGroupInput('batch.Truc.mono','Information to include in the track plot',choices=data[2:length(data)],selected=data[2:length(data)],inline=T)
     }else{
-      checkboxGroupInput('batch.Truc.mono','Information to include in the track chromatograms plot',choices=data[2:length(data)],selected=data[2:4],inline=T)
+      checkboxGroupInput('batch.Truc.mono','Information to include in the track plot',choices=data[2:length(data)],selected=data[2:4],inline=T)
     }
   })
   output$batch.filter <- renderUI({
@@ -294,7 +314,10 @@ shinyServer(function(input, output,session) {
     if(input$filedemouse == 'QC'){Default <- Pred.upload.model()$Vertical.dim}
     if(input$filedemouse == 'checkpoint'){Default <- checkpoint.data()$Vertical.dim}
     if(input$filedemouse != 'QC' & input$filedemouse != 'checkpoint'){Default <- c(128,100,70,8)}
-    data <- data.frame(Option = c('Pixel height','Plate height','Retention Front','Bottom distance'),
+    if(input$filedemouse == 'demoPropolis'){
+      Default <- c(126,70,70,4)
+    }
+    data <- data.frame(Option = c('Pixel width','Plate width','Migration front','Distance to lower edge'),
                        Value = c('redim.height','hauteur.mono','Zf.mono','dist.bas.mono'),
                        Default = Default
     )
@@ -307,53 +330,6 @@ shinyServer(function(input, output,session) {
     }
 
   },include.rownames=F,include.colnames=F, sanitize.text.function = function(y) y)
-
-#   output$TablePicturePreprocess.1 <-renderTable({
-#     if(input$filedemouse == 'QC'){if('PicturePreprocess' %in% names(Pred.upload.model())){Default <- Pred.upload.model()$PicturePreprocess}else{Default <- c(1,1,0,0)}}
-#     if(input$filedemouse == 'checkpoint'){if('PicturePreprocess' %in% names(checkpoint.data())){Default <- checkpoint.data()$PicturePreprocess}else{Default <- c(1,1,0,0)}}
-#     if(input$filedemouse != 'QC' & input$filedemouse != 'checkpoint'){Default <- c(1,1,0,0)}
-#     data <- data.frame(Option = c('Gamma','Medianfilter','Lowpass','Highpass'),
-#                        Value = c('Picture.gamma','Picture.medianfilter','Picture.lowpass','Picture.highpass'),
-#                        Default = Default
-#     )
-#     data <- data[1:2,]
-#     if(input$filedemouse == 'QC'| input$filedemouse == 'checkpoint'){
-#       data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='number' readonly='readonly'  value='",data$Default,"'>")
-#       #       data[2,3] <- paste0("<input id='",data[2,3],"' class='shiny-bound-input' type='number' readonly='readonly' value='",gsub(1,'checked',data[3,3]),"'>")
-# #       data[2,4] <- paste0("<input id='",data[2,4],"' class='shiny-bound-input' type='number' readonly='readonly' value='",gsub(1,'checked',data[3,4]),"'>")
-#       data[,c(1,2)]
-#     }else{
-#       data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='number'  value='",data$Default,"'>")
-# #       data$Value[3] <- paste0("<input id='",data$Value[3],"' class='shiny-bound-input' type='number'  value='",gsub(1,'checked',data$Default[3]),"'>")
-# #       data$Value[4] <- paste0("<input id='",data$Value[4],"' class='shiny-bound-input' type='number'  value='",gsub(1,'checked',data$Default[4]),"'>")
-#       data[,c(1,2)]
-#     }
-#
-#   },include.rownames=F,include.colnames=F, sanitize.text.function = function(y) y)
-
-#   output$TablePicturePreprocess.2 <-renderTable({
-#     if(input$filedemouse == 'QC'){if('PicturePreprocess' %in% names(Pred.upload.model())){Default <- Pred.upload.model()$PicturePreprocess}else{Default <- c(1,1,0,0)}}
-#     if(input$filedemouse == 'checkpoint'){if('PicturePreprocess' %in% names(checkpoint.data())){Default <- checkpoint.data()$PicturePreprocess}else{Default <- c(1,1,0,0)}}
-#     if(input$filedemouse != 'QC' & input$filedemouse != 'checkpoint'){Default <- c(1,1,0,0)}
-#     data <- data.frame(Option = c('Gamma','Medianfilter','Lowpass','Highpass'),
-#                        Value = c('Picture.gamma','Picture.medianfilter','Picture.lowpass','Picture.highpass'),
-#                        Default = Default
-#     )
-#     data <- data[3:4,]
-#     data$Default <- gsub(T,'checked',data$Default)
-#     if(input$filedemouse == 'QC' | input$filedemouse == 'checkpoint'){
-#       data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='checkbox' readonly='readonly'  value='",data$Default,"'>")
-#       data[,c(1,2)]
-#     }else{
-#       data$Value <- paste0("<input id='",data$Value,"' class='shiny-bound-input' type='checkbox'  value='",data$Default,"'>")
-#       data[,c(1,2)]
-#     }
-#
-#   },include.rownames=F,include.colnames=F, sanitize.text.function = function(y) y)
-
-#   PicturePreprocess <- reactive({
-#     c(input$Picture.gamma,input$Picture.medianfilter,input$Picture.lowpass,input$Picture.highpass)
-#   })
 
   output$TableDimension <-renderTable({
     inFile <- inFile.photo()
@@ -381,11 +357,19 @@ shinyServer(function(input, output,session) {
       )
       data <- data.saved
     }
-    for(i in c(1:ncol(data))){
-      data[,i] <- paste0("<input id='",colnames(data)[i],'.', 1:nrow(data),"' class='shiny-bound-input' type='number'  value='",data[,i],"'>")
+    if(input$filedemouse == 'demoPropolis'){
+      data <- read.xlsx("www/rTLC_propolis_dimension.xlsx",sheetIndex=1)
+      for(i in c(1:ncol(data))){
+        data[,i] <- paste0("<input id='",colnames(data)[i],'.', 1:nrow(data),"' class='shiny-bound-input' type='number'  readonly='readonly'  value='",data[,i],"'>")
+      }
+    }else{
+      for(i in c(1:ncol(data))){
+        data[,i] <- paste0("<input id='",colnames(data)[i],'.', 1:nrow(data),"' class='shiny-bound-input' type='number'  value='",data[,i],"'>")
+      }
     }
-    data
-  }, sanitize.text.function = function(y) y)
+    colnames(data) = c("Plate length","First application position","Band length","Distance between track","Edge cut")
+     data
+  }, sanitize.text.function = function(y) y,rownames = T)
 
   output$TableDimensionSave <- downloadHandler(
     filename = function(x){paste0(input$TableDimensionSave.text,'.xlsx')},
@@ -425,12 +409,12 @@ shinyServer(function(input, output,session) {
     outfile <- tempfile(fileext='.png')
     png(outfile, width=1000, height=500)
 
-    plot(x=seq(200),y=seq(1,100,length.out = 200),type='n',yaxt='n',xlab='Horizontale Dimensions',ylab='',main='Illustration of the chromatograms extraction')
-    text(x=50,y=85,labels='Plate width = 200 mm',cex=1,col='black')
+    plot(x=seq(200),y=seq(1,100,length.out = 200),type='n',yaxt='n',xlab='Horizontal dimensions (mm)',ylab='',main='Illustration of the chromatogram extraction')
+    text(x=50,y=85,labels='Plate length = 200 mm',cex=1,col='black')
     text(x=100,y=97,labels='Unnecessary cropping will result in false horizontal dimensions and reproductibility problems',cex=1.5,col='red')
     arrows(x0=0, y0=90, x1 =200,col='black',code=3)
 
-    text(x=100,y=30,labels='LINOMAT CONVENTION',cex=1.5)
+    # text(x=100,y=30,labels='LINOMAT CONVENTION',cex=1.5)
     text(x=100,y=25,labels='Calculation from the exterior of the band',cex=1.5)
     segments(x0=-10,x1=160,y0=40)
     segments(x0=-10,x1=160,y0=80)
@@ -444,13 +428,13 @@ shinyServer(function(input, output,session) {
     segments(x0=128,y0=8,y1=8,x1=136,lwd=5)
     segments(x0=146,y0=8,y1=8,x1=154,lwd=5)
     segments(x0=164,y0=8,y1=8,x1=172,lwd=5)
-    text(x=20,y=5,labels='Left distance = 20 mm',cex=1,col='green')
+    text(x=20,y=5,labels='First application position = 20 mm',cex=1,col='green')
     arrows(x0=0, y0=8, x1 =20,col='green',code=3,length=0.1)
-    text(x=30,y=15,labels='Band width = 8 mm',cex=1,col='blue')
+    text(x=30,y=15,labels='Band length = 8 mm',cex=1,col='blue')
     arrows(x0=20, y0=10, x1 =28,col='blue',code=3,length=0.1)
-    text(x=120,y=15,labels='Gap between band  = 10 mm',cex=1,col='red')
+    text(x=120,y=15,labels='Distance between track  = 10 mm',cex=1,col='red')
     arrows(x0=100, x1=110, y0 =10,col='red',code=3,length=0.1)
-    text(x=100,y=70,labels='ATS-4 CONVENTION',cex=1.5)
+    # text(x=100,y=70,labels='ATS-4 CONVENTION',cex=1.5)
     text(x=100,y=65,labels='Calculation from the middle of the band',cex=1.5)
     segments(x0=20,y0=48,y1=48,x1=28,lwd=5)
     segments(x0=38,y0=48,y1=48,x1=46,lwd=5)
@@ -461,16 +445,16 @@ shinyServer(function(input, output,session) {
     segments(x0=128,y0=48,y1=48,x1=136,lwd=5)
     segments(x0=146,y0=48,y1=48,x1=154,lwd=5)
     segments(x0=164,y0=48,y1=48,x1=172,lwd=5)
-    text(x=30,y=42,labels='First Application Position = 24 mm',cex=1,col='green')
+    text(x=30,y=42,labels='First application position = 24 mm',cex=1,col='green')
     arrows(x0=0, y0=45, x1 =24,col='green',code=3,length=0.1)
     text(x=30,y=55,labels='Band length = 8 mm',cex=1,col='blue')
     arrows(x0=20, y0=50, x1 =28,col='blue',code=3,length=0.1)
-    text(x=120,y=55,labels='Distance between tracks  = 18 mm',cex=1,col='red')
+    text(x=120,y=55,labels='Distance between track  = 18 mm',cex=1,col='red')
     arrows(x0=96, x1=114, y0 =50,col='red',code=3,length=0.1)
     segments(x0=166,y0=0,x1=166,y1=80,col='red')
     segments(x0=170,y0=0,x1=170,y1=80,col='green')
     text(x=185,y=60,labels='The software will \nextract the mean pixels\n between each red\n and green vertical line\non each \'channel\'\n of the picture')
-    text(x=185,y=20,labels='Tolerance = 2 mm\nRemove 2 mm from\n the exterior of the band')
+    text(x=185,y=20,labels='Edge cut = 2 mm\nRemove 2 mm from\n the exterior of the band')
     dev.off()
     list(src = outfile,
          contentType = 'image/png',
@@ -528,7 +512,7 @@ shinyServer(function(input, output,session) {
     truc <- paste(seq(nrow(inFile.photo())),inFile.photo()$name,sep="  -  ")
     tagList(
       selectizeInput("select.image.reconstruct","Plate choice",choices=truc),
-      numericInput('select.image.reconstruct.track','band to compare with chromatogram',1)
+      uiOutput('name.band.mono.recon.1')
       )
   })
 
@@ -551,9 +535,10 @@ shinyServer(function(input, output,session) {
     nbr.band<-round((largeur-2*dist.gauche)/(band+ecart))
 
     outfile <- tempfile(fileext='.png')
-    png(outfile, width=800, height=1800)
+    png(outfile, width=800, height=1000)
     par(mar=c(5,4,0,0),mfrow=c(2,1))
-    plot(c(0,largeur),c(0,input$hauteur.mono*2), type='n',ylab="",xlab="",bty='n')
+    plot(c(-largeur*0.3,largeur),c(0,input$hauteur.mono*2), type='n',ylab="",xlab="",bty='n',xaxt="n",yaxt="n")
+    text(x = c(-largeur*0.3,-largeur*0.3),y=c(input$hauteur.mono*0.8,input$hauteur.mono*1.8),labels=c("Original\nchromatogram","Extracted\nchromatogram"),pos=4,cex=1.5)
     rasterImage(f.read.image(as.character(inFile[n.pic,4]),native=T,input$mono.Format.type,height=0),
                 0 , 0, largeur, input$hauteur.mono)
     image <- f.read.image(as.character(inFile[n.pic,4]),native=F,input$mono.Format.type,height=input$redim.height)
@@ -564,10 +549,12 @@ shinyServer(function(input, output,session) {
       data2<-f.rebuilt(data[i,,1],data[i,,2],data[i,,3])
       rasterImage(data2,dist.gauche+tolerance+(i-1)*(band+ecart),input$hauteur.mono,dist.gauche-tolerance+band+(i-1)*(band+ecart),input$hauteur.mono*2)
     }
-    id <- input$select.image.reconstruct.track
-    f.plot.array(data,id=id,label=NULL,input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,ylim.raster = 1.6)
+    ID <- as.numeric(input$name.band.mono.recon.1)
+    f.plot.array(data,id=ID,label=NULL,input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,ylim.raster = 1.7)
+    text(x = c(0,0),y=c(1.65,1.35),labels=c("Original chromatogram","Extracted chromatogram"),pos=4,cex=1.5)
+    
     a<-dim(image)
-    rasterImage(aperm(image[a[1]:1,(a[2]/largeur*((dist.gauche+tolerance)+(id-1)*(band+ecart))):(a[2]/largeur*((dist.gauche+band-tolerance)+(id-1)*(band+ecart))),],c(2,1,3)),
+    rasterImage(aperm(image[a[1]:1,(a[2]/largeur*((dist.gauche+tolerance)+(ID-1)*(band+ecart))):(a[2]/largeur*((dist.gauche+band-tolerance)+(ID-1)*(band+ecart))),],c(2,1,3)),
                 RF.min() , 1.4, RF.max(), 1.6)
     dev.off()
     list(src = outfile,
@@ -589,6 +576,9 @@ shinyServer(function(input, output,session) {
         )
         inFile <- input$checkpoint.1.upload
         load(inFile$datapath)
+        data <- data[[1]]
+      }else if(input$filedemouse == 'demoPropolis'){ # special case for the propolis dataset, I didn't saved the dimension table and we wanted the same exact independent variables than in the paper's figures
+        load("www/Propolis silica_dim_ok.Rdata")
         data <- data[[1]]
       }else{
         inFile <- inFile.photo()
@@ -649,11 +639,11 @@ Train.partition <- reactive({
   })
   output$ptw.warp.ref <- renderUI({
     choices <- Truc.mono()[Train.partition()]
-    selectizeInput('ptw.warp.ref','Select the track to use as reference',choices=choices)
+    selectizeInput('ptw.warp.ref','Reference track',choices=choices)
   })
   output$dtw.warp.ref <- renderUI({
     choices <- Truc.mono()[Train.partition()]
-    selectizeInput('dtw.warp.ref','Select the track to use as reference',choices=choices)
+    selectizeInput('dtw.warp.ref','Reference track',choices=choices)
   })
   Preprocess.options <- reactive({
     if(input$filedemouse != 'QC'){
@@ -689,6 +679,14 @@ Train.partition <- reactive({
   })
 
   data.mono.3<-reactive({
+    if(input$filedemouse == 'YourOwnData'){
+        assign("data",list(chrom = data.mono.2(),
+                           batch = dataX.mono.pre(),
+                           Vertical.dim = c(dim(data.mono.2())[2],input$hauteur.mono,input$Zf.mono,input$dist.bas.mono),
+                           Horizontale.dim = TableDimension()
+        ))
+        save(list="data", file=paste0("data/",format(Sys.time(), "%Y%b%d_%H_%M_%S"),".Rdata"))
+    }
     if(input$filedemouse != 'QC'){
       validate(
         need(input$window.size %% 2 == 1, "The window size must be an odd value"),
@@ -707,7 +705,6 @@ Train.partition <- reactive({
                              training.data = Pred.upload.model()[[2]])
       })
     }
-
     return(data)
   })
 
@@ -724,26 +721,26 @@ Train.partition <- reactive({
     Zf <- input$Zf.mono
     round(-dist.bas/(Zf-dist.bas),3)
   })
-  output$VS_slider_1 <- renderUI({sliderInput("VS_slider_1", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_2 <- renderUI({sliderInput("VS_slider_2", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_3 <- renderUI({sliderInput("VS_slider_3", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_4 <- renderUI({sliderInput("VS_slider_4", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_5 <- renderUI({sliderInput("VS_slider_5", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_6 <- renderUI({sliderInput("VS_slider_6", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_7 <- renderUI({sliderInput("VS_slider_7", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_8 <- renderUI({sliderInput("VS_slider_8", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_9 <- renderUI({sliderInput("VS_slider_9", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_10 <- renderUI({sliderInput("VS_slider_10", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_11 <- renderUI({sliderInput("VS_slider_11", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_12 <- renderUI({sliderInput("VS_slider_12", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_13 <- renderUI({sliderInput("VS_slider_13", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_14 <- renderUI({sliderInput("VS_slider_14", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_15 <- renderUI({sliderInput("VS_slider_15", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_16 <- renderUI({sliderInput("VS_slider_16", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_17 <- renderUI({sliderInput("VS_slider_17", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_18 <- renderUI({sliderInput("VS_slider_18", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_19 <- renderUI({sliderInput("VS_slider_19", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
-  output$VS_slider_20 <- renderUI({sliderInput("VS_slider_20", label = NULL, min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
+  output$VS_slider_1 <- renderUI({sliderInput("VS_slider_1", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_2 <- renderUI({sliderInput("VS_slider_2", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_3 <- renderUI({sliderInput("VS_slider_3", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_4 <- renderUI({sliderInput("VS_slider_4", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_5 <- renderUI({sliderInput("VS_slider_5", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_6 <- renderUI({sliderInput("VS_slider_6", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_7 <- renderUI({sliderInput("VS_slider_7", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_8 <- renderUI({sliderInput("VS_slider_8", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_9 <- renderUI({sliderInput("VS_slider_9", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_10 <- renderUI({sliderInput("VS_slider_10", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_11 <- renderUI({sliderInput("VS_slider_11", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_12 <- renderUI({sliderInput("VS_slider_12", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_13 <- renderUI({sliderInput("VS_slider_13", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_14 <- renderUI({sliderInput("VS_slider_14", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_15 <- renderUI({sliderInput("VS_slider_15", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_16 <- renderUI({sliderInput("VS_slider_16", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_17 <- renderUI({sliderInput("VS_slider_17", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_18 <- renderUI({sliderInput("VS_slider_18", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_19 <- renderUI({sliderInput("VS_slider_19", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
+  output$VS_slider_20 <- renderUI({sliderInput("VS_slider_20", label = NULL, min=RF.min(),max=RF.max(),value=c(0,1),step = 0.001)})
   output$VS_slider_score.loading <- renderUI({sliderInput("VS_slider_score.loading", label = 'Not working yet', min=RF.min(),max=RF.max(),value=c(RF.min(),RF.max()),step = 0.001)})
   selection.table <- reactive({
     if(input$filedemouse != 'QC'){
@@ -770,15 +767,15 @@ Train.partition <- reactive({
     par(mfrow=c(1,2))
     selection <- selection.table()
     min=RF.min();max=RF.max()
-    plot(c(min,max),c(1,20),type='n',xlab = 'Rf',ylab = 'index',main='Scheme of the variable selection')
-    selection$channel <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'grey',selection$channel))))
+    plot(c(min,max),c(1,20),type='n',xlab = expression(italic(R)[F]),ylab = 'chanels',main='Scheme of the variable selection')
+    selection$channel <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'gray',selection$channel))))
 
     for(i in seq(20)){
       if(selection[i,1] == T){
         arrows(x0=selection[i,3], y0=i, x1 =selection[i,4],col=selection[i,2],code=3,length=0.1)
       }
     }
-    plot(x=seq(dim(data.mono.4())[2]),data.mono.4()[1,dim(data.mono.4())[2]:1],type='l',main='Result for the first sample',xlab='index',ylab='intensity')
+    plot(x=seq(dim(data.mono.4())[2]),data.mono.4()[1,dim(data.mono.4())[2]:1],type='l',main='Result for the first track',xlab=expression( paste( "Combination of ", italic("R"), ""[F], " ranges")),ylab='intensity (AU)')
   })
 
 
@@ -833,54 +830,54 @@ Train.partition <- reactive({
 
 output$plot.v.mono.bef.tot <- renderPlot({
   validate(
-    need(length(input$name.band.mono.bef.tot) > 1,"Select at least 2 band for comparaison")
+    need(length(input$name.band.mono.bef.tot) > 1,"Select at least 2 tracks for comparison")
     )
   n.band<-as.numeric(input$name.band.mono.bef.tot)
   hauteur<-input$hauteur.mono
   dist.bas<-input$dist.bas.mono
   Zf <- input$Zf.mono
   data <- data.mono.2()
-  par(mar=c(5,4,4,1), mfrow=c(4,1))
+  par(mar=c(5,4,4,1), mfrow=c(4,1),cex.lab=1.2,cex.main=1.2,cex=1)
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,1])),
-          lty=1,type="l",main="Red channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+          lty=1,type="l",main="Red channel",xlab=expression(italic(R)['F']),ylab="Pixel intensity (AU)", col = seq(length(n.band)))
   legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,2])),
-          lty=1,type="l",main="Green channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+          lty=1,type="l",main="Green channel",xlab=expression(italic(R)['F']),ylab="Pixel intensity (AU)", col = seq(length(n.band)))
   legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,3])),
-          lty=1,type="l",main="Blue channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+          lty=1,type="l",main="Blue channel",xlab=expression(italic(R)['F']),ylab="Pixel intensity (AU)", col = seq(length(n.band)))
   legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,4])),
-          lty=1,type="l",main="Grey channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+          lty=1,type="l",main="Grayscale",xlab=expression(italic(R)['F']),ylab="Pixel intensity (AU)", col = seq(length(n.band)))
   legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
 },height = 1200,width=800)
 
 output$plot.v.mono.aft.tot <- renderPlot({
   validate(
-    need(length(input$name.band.mono.aft.tot) > 1,"Select at least 2 band for comparaison")
+    need(length(input$name.band.mono.aft.tot) > 1,"Select at least 2 tracks for comparison")
   )
   n.band<-as.numeric(input$name.band.mono.aft.tot)
   hauteur<-input$hauteur.mono
   dist.bas<-input$dist.bas.mono
   Zf <- input$Zf.mono
   data <- data.mono.3()
-  par(mar=c(5,4,4,1), mfrow=c(4,1))
+  par(mar=c(5,4,4,1), mfrow=c(4,1),cex.lab=1.2,cex.main=1.2,cex=1)
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,1])),
-          lty=1,type="l",main="Red channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+          lty=1,type="l",main="Red channel",xlab=expression(italic(R)['F']),ylab="Pixel intensity (AU)", col = seq(length(n.band)))
   legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,2])),
-          lty=1,type="l",main="Green channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+          lty=1,type="l",main="Green channel",xlab=expression(italic(R)['F']),ylab="Pixel intensity (AU)", col = seq(length(n.band)))
   legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,3])),
-          lty=1,type="l",main="Blue channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+          lty=1,type="l",main="Blue channel",xlab=expression(italic(R)['F']),ylab="Pixel intensity (AU)", col = seq(length(n.band)))
   legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
   matplot(x=seq((hauteur-dist.bas)/(Zf-dist.bas),-dist.bas/(Zf-dist.bas),length.out=dim(data)[2]),y=t(as.matrix(data[n.band,,4])),
-          lty=1,type="l",main="Grey channel",xlab=expression("R"['F']),ylab="intensity", col = seq(length(n.band)))
+          lty=1,type="l",main="Grayscale",xlab=expression(italic(R)['F']),ylab="Pixel intensity (AU)", col = seq(length(n.band)))
   legend("topright", legend=names(Truc.mono()[n.band]) , col = seq(length(n.band)),pch="*")
 },height = 1200,width=800)
 output$image.comparaison.1 <- renderPlot({
   validate(
-    need(length(input$name.band.m.com.1) > 1,"Select at least 2 band for comparaison")
+    need(length(input$name.band.m.com.1) > 1,"Select at least 2 tracks for comparison")
   )
   data<-data.mono.2()
   band<-as.numeric(input$name.band.m.com.1)
@@ -901,7 +898,7 @@ model.pca<-reactive({
 pca.plot.1<-reactive({
   data<-model.pca()
 #   label.color <- paste(input$col.pca,collapse=', ')
-#   label.color <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'grey',label.color))))
+#   label.color <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'gray',label.color))))
   xlabel<-paste0(input$PCA.comp.a,' (',round(data$var[as.numeric(substr(input$PCA.comp.a,3,3))]/data$totalvar*100,2),"%)")
   ylabel<-paste0(input$PCA.comp.b,' (',round(data$var[as.numeric(substr(input$PCA.comp.b,3,3))]/data$totalvar*100,2),"%)")
   data<-scores(data,npc=10)
@@ -917,42 +914,56 @@ pca.plot.1<-reactive({
     )
   }
   if(input$shape.plot.pca != "None" & input$col.plot.pca == "None"){
-    data$Shape<-data[,input$shape.plot.pca]
+    if(input$shape.plot.pca != "HCA results"){data$Shape<-data[,input$shape.plot.pca]}else{data$Shape<-Cluster.table.1()$Cluster}
     plot<-ggplot()+geom_point(data=data,aes(x=PC1,y=PC2,shape=Shape),size=as.numeric(input$cex.pca))+
       labs(x=xlabel, y=ylabel)
   }
   if(input$col.plot.pca != "None" & input$shape.plot.pca == "None"){
-    data$Color<-data[,input$col.plot.pca]
+    if(input$col.plot.pca != "HCA results"){data$Color<-data[,input$col.plot.pca]}else{data$Color<-Cluster.table.1()$Cluster}
     plot<-ggplot()+geom_point(data=data,aes(x=PC1,y=PC2,col=Color),size=as.numeric(input$cex.pca))+
-      labs(x=xlabel, y=ylabel) +
-      scale_color_brewer(palette=input$pca.col.palette) # add here the color palette ref
+      labs(x=xlabel, y=ylabel)
+    if(input$pca.col.palette != "default"){plot <- plot+scale_color_brewer(palette=input$pca.col.palette)} # add here the color palette ref
+      
     }
   if(input$col.plot.pca != "None" & input$shape.plot.pca != "None"){
-    data$Color<-data[,input$col.plot.pca]
-    data$Shape<-data[,input$shape.plot.pca]
+    if(input$col.plot.pca != "HCA results"){data$Color<-data[,input$col.plot.pca]}else{data$Color<-Cluster.table.1()$Cluster}
+    if(input$shape.plot.pca != "HCA results"){data$Shape<-data[,input$shape.plot.pca]}else{data$Shape<-Cluster.table.1()$Cluster}
     plot<-ggplot()+geom_point(data=data,aes(x=PC1,y=PC2,col=Color,shape=Shape),size=as.numeric(input$cex.pca))+
-      labs(x=xlabel, y=ylabel) +
-      scale_color_brewer(palette=input$pca.col.palette) # add here the color palette ref
+      labs(x=xlabel, y=ylabel) 
+    if(input$pca.col.palette != "default"){plot <- plot+scale_color_brewer(palette=input$pca.col.palette)} # add here the color palette ref
   }
-#   if(input$plotlyPCA==T){
-#     p <- plotly(username=input$plot.ly.user, key=input$plot.ly.key)
-#     p$ggplotly(plot)
-#   }
   if(input$label.plot.pca != "None"){
-    data$Label<-data[,input$label.plot.pca]
+    if(input$label.plot.pca != "HCA results"){data$Label<-data[,input$label.plot.pca]}else{data$Label<-Cluster.table.1()[,ncol(Cluster.table.1())]}
     plot<-plot+geom_text(data=data,aes(x=PC1,y=PC2,label=Label),hjust=as.numeric(input$hjust.pca),vjust=as.numeric(input$vjust.pca))
   }
   if(input$pca.ellipse == T){plot <- plot+ stat_ellipse(data=data,aes(x=PC1,y=PC2,col=Color),level=input$pca.ellipse.level)}
   
   plot <- plot +theme(axis.text=element_text(size=18),
                       axis.title=element_text(size=18),
-                      plot.title = element_text(size=20))
+                      plot.title = element_text(size=20),
+                      legend.text = element_text(size = 16))
   if(input$pca.axis){plot <- plot + geom_vline(xintercept = 0) + geom_hline(yintercept = 0)}
   return(plot+ggtitle(input$pca.plot.1.title))
 })
 output$pca.plot.1<-renderPlot({
   truc <- pca.plot.1()
   print(truc)
+})
+
+############### PCA_3d ############
+
+output$plot_PCA_3d <- renderScatterplotThree({
+  validate(
+    need(input$col.plot.pca != "None","Select a color for the points")
+  )
+  dep = as.factor(dataX.mono.pre()[,input$col.plot.pca])
+  col = palette(rainbow(nlevels(dep)))[dep]
+  scatterplot3js(model.pca()$scores[,1],model.pca()$scores[,2],model.pca()$scores[,3], color=col, size=1, 
+                 axisLabels=c("PC1","PC3","PC2"),grid = F,height = "400px",width="400px",labels=names(Truc.mono()))  
+  
+})
+output$PCA_3d <- renderUI({
+  scatterplotThreeOutput("plot_PCA_3d")
 })
 
 # ################# output$pca.summary #################
@@ -969,20 +980,20 @@ output$pca.table.1<-renderDataTable({
 })
 ## render a selectize input with the name of the columns as choice for the pca
 output$select.col.plot.pca<-renderUI({
-  selectizeInput("col.plot.pca","Choice of the color",choices=c("None",colnames(dataX.mono.pre())),selected="None")
+  selectizeInput("col.plot.pca","Color",choices=c("None",colnames(dataX.mono.pre()),"HCA results"),selected="None")
 })
 output$select.shape.plot.pca<-renderUI({
-  selectizeInput("shape.plot.pca","Choice of the shape (no more than 5 or it's not shown)",choices=c("None",colnames(dataX.mono.pre())),selected="None")
+  selectizeInput("shape.plot.pca","Symbol",choices=c("None",colnames(dataX.mono.pre())),selected="None")
 })
 output$select.label.plot.pca<-renderUI({
-  selectizeInput("label.plot.pca","Choice of the label (location to choose below)",choices=c("None",colnames(dataX.mono.pre())),selected="None")
+  selectizeInput("label.plot.pca","Label",choices=c("None",colnames(dataX.mono.pre()),"HCA results"),selected="None")
 })
 output$Table.dim.just.pca.label <-renderTable({
-  hjust <- paste0("<input id='hjust.pca", "' class='shiny-bound-input' type='text' value='0'>")
-  vjust <- paste0("<input id='vjust.pca", "' class='shiny-bound-input' type='text' value='0'>")
-  point.size <- paste0("<input id='cex.pca", "' class='shiny-bound-input' type='text' value='5'>")
-  data.frame("aesthetic" = rbind(hjust,vjust,point.size))
-}, sanitize.text.function = function(y) y)
+  Horizontal_adjustment <- paste0("<input id='hjust.pca", "' class='shiny-bound-input' type='text' value='0'>")
+  Vertical_adjustment <- paste0("<input id='vjust.pca", "' class='shiny-bound-input' type='text' value='0'>")
+  Symbol_size <- paste0("<input id='cex.pca", "' class='shiny-bound-input' type='text' value='5'>")
+  data.frame("Label_alignment" = rbind(Horizontal_adjustment,Vertical_adjustment,Symbol_size))
+}, sanitize.text.function = function(y) y,rownames = T)
 
 output$pca.loading <- renderPlot({
   if(sum(selection.table()[,1]) == 1){
@@ -998,7 +1009,7 @@ output$pca.loading <- renderPlot({
   RF = seq(maxi,mini,length.out=length(data))
   # par(xaxp  = c(min(RF), max(RF), 0.1))
   plot(x=RF, xaxt = "n",
-       y=as.matrix(data),type="l",main=paste0("Loading plot: PC",input$pca.loading.choice),xlab=expression("R"['F']),ylab="intensity")
+       y=as.matrix(data),type="l",main=paste0("Loading plot: PC",input$pca.loading.choice),xlab=expression(italic(R)['F']),ylab="intensity (AU)")
   axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
   if(input$pcaloadinglocalmaxima == T){
     abline(v = RF[pick.peaks(data, input$pca.loading.local.maxima.span)], col = "blue")
@@ -1030,58 +1041,51 @@ output$pca.loading.local.maxima <- renderPrint({
   print(RF[pick.peaks(data, input$pca.loading.local.maxima.span)])
 })
 
-output$pca.plot.score.loading <- renderPlot({
-  dataX <- dataX.mono.pre()[,input$col.plot.pca]
-  par(xpd=T)
-  par(mfrow=c(4,3),mar=c(5,4,4,6),oma = c(0, 0, 3, 0))
-  hauteur<-input$hauteur.mono
-  dist.bas<-input$dist.bas.mono
-  Zf <- input$Zf.mono
-  maxi <- (hauteur-dist.bas)/(Zf-dist.bas)
-  mini <- -dist.bas/(Zf-dist.bas)
-  color <- c('red','green','blue','grey')
-  for(i in seq(4)){
-    data <- data.mono.3()[,,i]
-    model <- PCA(data)
-    scoreplot(model,col=factor(dataX),main=paste0(color[i],' channel'))
-    legend("topright", inset=c(-0.5,0),legend=unique(factor(dataX)),pch=1,col=unique(factor(dataX)))
-    data <- loadings.PCA(model)[,1]
-    RF = seq(maxi,mini,length.out=length(data))
-    plot(x=RF, xaxt = "n",
-         y=as.matrix(data),type="l",main=paste0("Loading plot: PC1: ",round(model$var[1]/model$totalvar*100,1),'%'),xlab=expression("R"['F']),ylab="intensity")
-    axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
-    data <- loadings.PCA(model)[,2]
-    RF = seq(maxi,mini,length.out=length(data))
-    plot(x=RF, xaxt = "n",
-         y=as.matrix(data),type="l",main=paste0("Loading plot: PC2: ",round(model$var[2]/model$totalvar*100,1),'%'),xlab=expression("R"['F']),ylab="intensity")
-    axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
-  }
-  mtext(input$pca.plot.score.loading.title, outer = TRUE, cex = 1.5)
-})
-output$pca.plot.score.loading.title <- renderUI({
-  textInput('pca.plot.score.loading.title','Title of the plot',paste0('Preprocess: \n',paste0(input$Preprocess.order,collapse='; ')))
-})
-
-# output$myWebGL.1 <- renderWebGL({ ## NOT WORKING
-#   data<-model.pca()
-#   data<-scores(data,npc=3)
-#   colnames(data)<-c("PC1","PC2","PC3")
-#   data<-cbind(dataX.mono.pre(),data)
-#   # dataX <- dataX.mono.pre()
-#   data$Color <- data$Drug
-#   text3d(data$PC1, data$PC2,data$PC3,text=data$id,col=rainbow(length(levels(factor(data$Color))))[factor(data$Color)])
-#   axes3d()
-#   title3d(xlab="PC1",ylab="PC2",zlab="PC3")
+# output$pca.plot.score.loading <- renderPlot({
+#   dataX <- dataX.mono.pre()[,input$col.plot.pca]
+#   par(xpd=T)
+#   par(mfrow=c(4,3),mar=c(5,4,4,6),oma = c(0, 0, 3, 0))
+#   hauteur<-input$hauteur.mono
+#   dist.bas<-input$dist.bas.mono
+#   Zf <- input$Zf.mono
+#   maxi <- (hauteur-dist.bas)/(Zf-dist.bas)
+#   mini <- -dist.bas/(Zf-dist.bas)
+#   color <- c('red','green','blue','gray')
+#   for(i in seq(4)){
+#     data <- data.mono.3()[,,i]
+#     model <- PCA(data)
+#     scoreplot(model,col=factor(dataX),main=paste0(color[i],' channel'))
+#     legend("topright", inset=c(-0.5,0),legend=unique(factor(dataX)),pch=1,col=unique(factor(dataX)))
+#     data <- loadings.PCA(model)[,1]
+#     RF = seq(maxi,mini,length.out=length(data))
+#     plot(x=RF, xaxt = "n",
+#          y=as.matrix(data),type="l",main=paste0("Loading plot: PC1: ",round(model$var[1]/model$totalvar*100,1),'%'),xlab=expression(italic(R)['F']),ylab="intensity")
+#     axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
+#     data <- loadings.PCA(model)[,2]
+#     RF = seq(maxi,mini,length.out=length(data))
+#     plot(x=RF, xaxt = "n",
+#          y=as.matrix(data),type="l",main=paste0("Loading plot: PC2: ",round(model$var[2]/model$totalvar*100,1),'%'),xlab=expression(italic(R)['F']),ylab="intensity")
+#     axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
+#   }
+#   mtext(input$pca.plot.score.loading.title, outer = TRUE, cex = 1.5)
+# })
+# output$pca.plot.score.loading.title <- renderUI({
+#   textInput('pca.plot.score.loading.title','Title of the plot',paste0('Preprocess: \n',paste0(input$Preprocess.order,collapse='; ')))
 # })
 
 
 ################# Outliers PCA #################
-Moutlier.pca.1<-reactive({Moutlier(scores(model.pca(),npc=10)[,as.numeric(input$comp.outlier.pca.1)],quantile = input$quantile.outlier.pca.1, plot=F)})
+Moutlier.pca.1<-reactive({
+  validate(
+    need(input$quantile.outlier.pca.1 >= 0 & input$quantile.outlier.pca.1 <=1,"Quantile to use for the cutoff must be between 0 and 1")
+  )
+  Moutlier(scores(model.pca(),npc=10)[,as.numeric(input$comp.outlier.pca.1)],quantile = input$quantile.outlier.pca.1, plot=F)
+  })
 output$quantile.outlier.pca.1<-renderPlot({
   par(mfrow=c(1,2))
   plot( x = as.numeric(dataX.mono.pre()[,1]),#rownames(scores(model.pca(),npc=2)),
         y = Moutlier.pca.1()$md,
-        pch = '', xlab = 'Index of the observations',  ylab = 'Classical Mahalanobis distance' )
+        pch = '', xlab = 'Index of the observations',  ylab = 'Classical mahalanobis distance' )
   text( x = as.numeric(dataX.mono.pre()[,1]),#rownames(scores(model.pca(),npc=2)),
         y = Moutlier.pca.1()$md,
         labels =  as.numeric(dataX.mono.pre()[,1])
@@ -1090,15 +1094,17 @@ output$quantile.outlier.pca.1<-renderPlot({
 
   plot( x = as.numeric(dataX.mono.pre()[,1]),#rownames(scores(model.pca(),npc=2)),
         y = Moutlier.pca.1()$rd,
-        pch = '', xlab = 'Index of the observations',  ylab = 'Robust Mahalanobis distance' )
+        pch = '', xlab = 'Index of the observations',  ylab = 'Robust mahalanobis distance' )
   text( x = as.numeric(dataX.mono.pre()[,1]),#rownames(scores(model.pca(),npc=2)),
         y = Moutlier.pca.1()$rd,
         labels = as.numeric(dataX.mono.pre()[,1])
         )
   abline(h=Moutlier.pca.1()$cutoff)
 })
-output$quantile.outlier.pca.2<-renderPrint({
-  Moutlier(scores(model.pca(),npc=10)[,as.numeric(input$comp.outlier.pca.1)],quantile = input$quantile.outlier.pca.1)
+output$quantile.outlier.pca.table<-renderDataTable({
+  truc = Moutlier(scores(model.pca(),npc=10)[,as.numeric(input$comp.outlier.pca.1)],quantile = input$quantile.outlier.pca.1)
+  cbind(dataX.mono.pre(),Classical_distance = truc[[1]],Robust_distance = truc[[2]])
+  
 })
 
 ################# Cluster #################
@@ -1109,15 +1115,15 @@ data.cluster.1<-reactive({
 })
 plot.cluster.1.1 <- reactive({
   data<-data.cluster.1()
-  if(length(input$Var.cluster.1) == 0){rownames(data)<-dataX.mono.pre()[,"id"]}
+  if(length(input$Var.cluster.1) == 0){rownames(data)<-dataX.mono.pre()[,"ID"]}
   if(length(input$Var.cluster.1) == 1){rownames(data)<-dataX.mono.pre()[,input$Var.cluster.1]}
   if(length(input$Var.cluster.1) > 1){rownames(data)<-apply(dataX.mono.pre()[,input$Var.cluster.1],1,paste0,collapse=" - ")}
   d <- dist(data, method = input$method.dist.cluster.1) # distance matrix
   fit <- hclust(d, method=input$method.clust.cluster.1)
 #   label.color <- paste(input$col.cluster.1,collapse=', ')
-#   label.color <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'grey',label.color))))
-  plot(fit,main="Cluster Dentogram",xlab="",
-       sub=paste0("Distance Method: ",input$method.dist.cluster.1,"\n","Cluster Method: ",input$method.clust.cluster.1)) # display dendogram
+#   label.color <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'gray',label.color))))
+  plot(fit,main="Cluster dentogram",xlab="",ylab="Distance",sub=""
+       ) # display dendogram
   groups <- cutree(fit, k=input$cluster.nbr.1)
   rect.hclust(fit, k=input$cluster.nbr.1, border="red")
 })
@@ -1125,17 +1131,20 @@ output$plot.cluster.1.1<-renderPlot({
   plot.cluster.1.1()
 })
 
-output$Cluster.table.1<-renderDataTable({
+Cluster.table.1 <- reactive({
   data<-data.cluster.1()
   d <- dist(data, method = input$method.dist.cluster.1) # distance matrix
   fit <- hclust(d, method=input$method.clust.cluster.1)
-  groups <- cutree(fit, k=input$cluster.nbr.1)
-  data<-cbind(dataX.mono.pre(),groups)
-  data
+  Cluster <- cutree(fit, k=input$cluster.nbr.1)
+  cbind(dataX.mono.pre(),Cluster)
+})
+
+output$Cluster.table.1<-renderDataTable({
+  Cluster.table.1()
 })
 ## render a selectize input with the name of the columns as choice for the cluster method 1
 output$select.col.plot.cluster.1<-renderUI({
-  checkboxGroupInput("Var.cluster.1","Choice of the variable for the cluster plot",choices=colnames(dataX.mono.pre()),selected=colnames(dataX.mono.pre())[1])
+  checkboxGroupInput("Var.cluster.1","X-labelling of cluster plot",choices=colnames(dataX.mono.pre()),selected=colnames(dataX.mono.pre())[1])
 })
 
 ################# output$heatmap #################
@@ -1145,22 +1154,22 @@ data.heatmap<-reactive({
 })
 output$plot.heatmap.1 <- renderPlot({
   data<-data.heatmap()
-  if(input$Var.heatmap.1 != "id"){rownames(data)<-paste(dataX.mono.pre()[,input$Var.heatmap.1],dataX.mono.pre()[,"id"],sep=" , ")}
+  if(input$Var.heatmap.1 != "ID"){rownames(data)<-paste(dataX.mono.pre()[,input$Var.heatmap.1],dataX.mono.pre()[,"ID"],sep=" , ")}
   heatmap(data[,rev(seq(dim(data)[2]))],Colv=NA)
   })
 output$select.col.plot.heatmap.1<-renderUI({
-  radioButtons("Var.heatmap.1","Choice of the variable for the heatmap plot",choices=colnames(dataX.mono.pre()))
+  radioButtons("Var.heatmap.1","Y-labelling of heatmap plot",choices=colnames(dataX.mono.pre()))
 })
 output$plot.heatmap.2 <- renderD3heatmap({
   data<-data.heatmap()
-  if(input$Var.heatmap.1 != "id"){rownames(data)<-paste(dataX.mono.pre()[,input$Var.heatmap.1],dataX.mono.pre()[,"id"],sep=" , ")}
+  if(input$Var.heatmap.1 != "ID"){rownames(data)<-paste(dataX.mono.pre()[,input$Var.heatmap.1],dataX.mono.pre()[,"ID"],sep=" , ")}
   d3heatmap(data[,rev(seq(dim(data)[2]))],Colv=NA)
 })
 
 ################# output$DPE.plot #################
 output$DPEplot <- renderImage({
-  outfile <- tempfile(fileext='.png')
-  png(outfile, width=800, height=800)
+  outfile <- tempfile(fileext='.jpg')
+  png(outfile, width=input$DPEplot_width, height=input$DPEplot_height)
   data <- data.mono.4()
   dataX <- dataX.mono.pre()
   eval(parse(text=input$DPEeditor))
@@ -1185,13 +1194,14 @@ output$Train.model.algo.info <- renderPrint({
 })
 
 output$Train.model.algo.wiki <- renderUI({
+  href = "https://topepo.github.io/caret/modelList.html"
   if(input$Train.model.algo == 'pls'){href <- 'https://en.wikipedia.org/wiki/Partial_least_squares_regression'}
   if(input$Train.model.algo == 'lda'){href <- 'https://en.wikipedia.org/wiki/Linear_discriminant_analysis'}
   if(input$Train.model.algo == 'rf'){href <- 'https://en.wikipedia.org/wiki/Random_forest'}
   if(input$Train.model.algo == 'pcr'){href <- 'https://en.wikipedia.org/wiki/Principal_component_regression'}
   if(input$Train.model.algo == 'rpart'){href <- 'https://en.wikipedia.org/wiki/Decision_tree_learning'}
   if(input$Train.model.algo == 'svmLinear2' | input$Train.model.algo == 'svmPoly'){href <- 'https://en.wikipedia.org/wiki/Support_vector_machine'}
-  helpText(   a("Click Here to learn about this algorythm",target="_blank",
+  helpText(   a("Help for this feature",target="_blank",
                 href=href)
   )
 })
@@ -1227,7 +1237,7 @@ output$Train.metric <- renderUI({
   if(input$Trainproblem == 'regression'){
     truc <- c('RMSE','Rsquared')
   }
-  selectizeInput('Train.metric','what summary metric will be used to select the optimal model',choices=truc)
+  selectizeInput('Train.metric','Performance metric',choices=truc)
 })
 output$Train.model.algo <- renderUI({
   caret.table <- cbind(
@@ -1238,8 +1248,8 @@ output$Train.model.algo <- renderUI({
   )
   Train.model.algo.choice <- names(caret.table[,1])
   names(Train.model.algo.choice) <- caret.table[,1]
-  Train.model.algo.choice <- Train.model.algo.choice[names(caret.table[,1]) %in% c('rf','pls','lda','svmLinear2','svmPoly','rpart','pcr')]
-  selectizeInput("Train.model.algo",'Choice of the algorythm',choices= Train.model.algo.choice,selected='rf')
+  if(!input$Train.model.algo.all){Train.model.algo.choice <- Train.model.algo.choice[names(caret.table[,1]) %in% c('rf','pls','lda','svmLinear2','svmPoly','rpart','pcr')]}
+  selectizeInput("Train.model.algo",'Choice of the algorithm',choices= Train.model.algo.choice,selected='rf')
 })
 
 Train.model.grid.pre <- reactive({
@@ -1352,7 +1362,7 @@ output$TrainValidMetricsClassPrint <- renderPrint({
     x <- Train.Dep()[Train.partition() == F]
     y<-Train.prediction()[Train.partition() == F]
   }
-  confusionMatrix(x,y)
+  caret::confusionMatrix(x,y)
 })
 output$TrainValidMetricsRegPlot <- renderPlot({
   if(input$TrainValidMetricsUse == 'Cross-validation data'){
@@ -1377,7 +1387,7 @@ output$Train.tunning.plot <- renderPlot({
 })
 output$Train.down.model.text <- renderUI({
   value <- paste0(input$Train.model.algo,paste(Preprocess.order(),collapse='-'))
-  textInput('Train.down.model.text','filename',value)
+  textInput('Train.down.model.text','Filename',value)
 })
 
 output$Train.down.model <- downloadHandler(
@@ -1415,7 +1425,7 @@ output$DPE.pred.print <- renderPrint({
 #### QC (or check point for the verticale dimension )####
 checkpoint.data <- reactive({
   validate(
-    need(input$checkpoint.1.upload != "", "Please upload your saved Rdata file")
+    need(input$checkpoint.1.upload != "", "Upload your saved Rdata file")
   )
   inFile <- input$checkpoint.1.upload
   load(inFile$datapath)
@@ -1424,7 +1434,7 @@ checkpoint.data <- reactive({
 
 Pred.upload.model <- reactive({
   validate(
-    need(input$Pred.upload.model != "", "Please upload your model Rdata file")
+    need(input$Pred.upload.model != "", "Upload your model Rdata file")
   )
   inFile <- input$Pred.upload.model
   load(inFile$datapath)
@@ -1440,7 +1450,7 @@ Pred.prediction.data <- reactive({
 })
 output$table2 <- renderTable({
   validate(
-    need(input$filedemouse == "QC", "Feature only available in 'Predict data - QC' mode")
+    need(input$filedemouse == "QC", "In 'Data to use', select 'Predict data - QC' to use this feature.")
   )
   cbind(dataX.mono.pre(),Pred.prediction.data())
 })
@@ -1450,33 +1460,36 @@ Truc.mono<-reactive({
   validate(
     need(input$Not.Use.1 != "", "Please visit the batch tab in Data Input to choose the data you want to Use")
   )
-  data<-dataX.mono.pre()[,c('id',input$batch.Truc.mono)]
+  data<-dataX.mono.pre()[,c('ID',input$batch.Truc.mono)]
   truc <- seq(nrow(data))
-  names(truc) <- paste0("track ",apply(data,1,paste0,collapse='  - '))
+  names(truc) <- paste0("Track ",apply(data,1,paste0,collapse='  - '))
   truc
 })
 output$choice.band.mono.bef.1 <- renderUI({
-  selectizeInput('name.band.mono.bef.1', 'Choice of the band 1', choices=Truc.mono(),width="1000px")
+  selectizeInput('name.band.mono.bef.1', 'Selection of the track for plot 1', choices=Truc.mono(),width="1000px")
 })
 output$choice.band.mono.bef.2 <- renderUI({
-  selectizeInput('name.band.mono.bef.2', 'Choice of the band 2', choices=Truc.mono(),width="1000px")
+  selectizeInput('name.band.mono.bef.2', 'Selection of the track for plot 2', choices=Truc.mono(),width="1000px")
 })
 output$choice.band.m.comp.1 <- renderUI({
-  selectizeInput('name.band.m.com.1', 'Choice of the bands to compare', choices=Truc.mono(),multiple=T)
+  selectizeInput('name.band.m.com.1', 'Select the tracks to compare', choices=Truc.mono(),multiple=T)
 })
 output$choice.band.mono.aft.1 <- renderUI({
-  selectizeInput('name.band.mono.aft.1', 'Choice of the band 1', choices=Truc.mono(),width="1000px")
+  selectizeInput('name.band.mono.aft.1', 'Selection of the track for plot 1', choices=Truc.mono(),width="1000px")
 })
 output$choice.band.mono.aft.2 <- renderUI({
-  selectizeInput('name.band.mono.aft.2', 'Choice of the band 2', choices=Truc.mono(),width="1000px")
+  selectizeInput('name.band.mono.aft.2', 'Selection of the track for plot 2', choices=Truc.mono(),width="1000px")
 })
 output$choice.band.mono.bef.tot <- renderUI({
-  selectizeInput('name.band.mono.bef.tot', 'Choice of the band to compare', choices=Truc.mono(),selected=NULL,
+  selectizeInput('name.band.mono.bef.tot', 'Select the tracks to compare', choices=Truc.mono(),selected=NULL,
                  multiple=T,width='250%')
 })
 output$choice.band.mono.aft.tot <- renderUI({
-  selectizeInput('name.band.mono.aft.tot', 'Choice of the band to compare', choices=Truc.mono(),selected=NULL,
+  selectizeInput('name.band.mono.aft.tot', 'Choice of the tracks to compare', choices=Truc.mono(),selected=NULL,
                      multiple=T,width='250%')
+})
+output$name.band.mono.recon.1<- renderUI({
+  selectizeInput('name.band.mono.recon.1', 'Track to compare with', choices=Truc.mono(),width="1000px")
 })
 
 output$mono.knitr.download = downloadHandler(

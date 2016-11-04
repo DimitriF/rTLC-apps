@@ -1,21 +1,18 @@
-rTLC
+rTLC V.1.0
 ===========
 
-This Shiny application is made to perform multivariate analysis of HPTLC pictures.
+This shiny application is made to perform multivariate analysis of HPTLC chromatograms.
 
-3 options to use it:
+Two options to use it:
 
 Go to this url:
 http://shinyapps.ernaehrung.uni-giessen.de/rtlc/
-
-Go to this url:
-https://dimitrif.shinyapps.io/rTLC
 
 Install the application localy with the following instructions:
 
 ## Local Installation
 
-Note that this software has a lot of dependencies and that depending of your system, it could be difficult to install it without basic knowledge of informatic.
+Depending on your system, it could be difficult to install this software without basic knowledge of informatics.
 
 Download and install R:
 http://cran.r-project.org/
@@ -23,7 +20,7 @@ http://cran.r-project.org/
 Install a fresh version of java:
 https://www.java.com/
 
-If you want to produce pdf report, you'll need to install Latex:
+If you want to produce a pdf report, you will need to install LaTex:
 http://latex-project.org/ftp.html
 
 Install the dependencies by running this in the R console:
@@ -33,12 +30,12 @@ install.packages(
     c('shiny',"jpeg","png",'tiff','caret','klaR','xlsx',"ChemometricsWithR","gplots","kohonen",'memoise',"devtools","chemometrics",
       "ggplot2","abind","plyr",'dplyr',"prospectr","DiscriMiner","baseline","knitr","xtable",'rmarkdown',
       "ptw","dtw",'shinyAce','shinydashboard','d3heatmap','randomForest','kernlab','ipred','extraTrees','evtree',
-      'htmltools','httpuv','mime','MASS','pls','rpart','e1071','FBN')
+      'htmltools','httpuv','mime','MASS','pls','rpart','e1071','FBN',"threejs")
     )
 
 ```
 
-Finally, launch the application by running this line
+Finally, launch the application by running this line:
 
 ```r
 shiny::runGitHub(repo='rTLC-apps', username='DimitriF')

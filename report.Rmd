@@ -3,7 +3,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(dpi=300, cache=F,echo=F,warning=F,message=F,autodep=T,dev=c("png"))
+knitr::opts_chunk$set(dpi=300, cache=F,echo=F,warning=F,message=F,autodep=T,dev=c("pdf"))
 ```
 
 ```{r basic, fig.height=3.5,fig.width=7,results='asis'}
@@ -11,42 +11,42 @@ if(input$mono.knitr.file.name == T){
   inFilep <- inFile.photo()
   inFilex <- inFile.X()
   data <- cbind(
-    c("batch file",paste0("picture file ",seq(nrow(inFilep)))),
+    c("Batch file",paste0("Chromatogram file ",seq(nrow(inFilep)))),
     c(as.character(inFilex$name),as.character(inFilep$name))
     )
   # kable(data,row.names=NA,col.names=NA)
   kable(data, caption = 'Files')
 }
   
-  if(input$monoknitrpicture == T){
-    par(mar=c(0,0,0,0), xaxt='n',yaxt='n', ann=FALSE)
-    par(mfrow=c(1,1))
-    inc <- 0
-    inFile <- inFile.photo()
-    for(i in seq(nrow(inFile))){
-      n.pic<-i
-      if(input$TableDimensionConvention == 'Linomat'){
-        largeur<-as.numeric(TableDimension()[n.pic,1])
-        dist.gauche<-as.numeric(TableDimension()[n.pic,2])
-        band<-as.numeric(TableDimension()[n.pic,3])
-        ecart<-as.numeric(TableDimension()[n.pic,4])
-        tolerance<-as.numeric(TableDimension()[n.pic,5])
-      }else{
-        largeur<-as.numeric(TableDimension()[n.pic,1])
-        band<-as.numeric(TableDimension()[n.pic,3])
-        dist.gauche<-as.numeric(TableDimension()[n.pic,2])-band/2
-        ecart<-as.numeric(TableDimension()[n.pic,4])-band
-        tolerance<-as.numeric(TableDimension()[n.pic,5])
-      }
-      nbr.band<-round((largeur-2*dist.gauche)/(band+ecart))
-      plot(c(0,200),c(0,100), type='n',ylab="",xlab="",bty='n')
-      rasterImage(f.read.image(as.character(inFile[n.pic,4]),native=T,format=input$mono.Format.type),0 , 0, largeur, 100)
-      for(j in seq(nbr.band)){
-        inc <- inc+1
-        text(x=(dist.gauche+tolerance+(j-1)*(band+ecart)),y=90,labels=dataX.edited()[inc,1],col="red",cex=1)
-      }
+if(input$monoknitrpicture == T){
+  par(mar=c(0,0,0,0), xaxt='n',yaxt='n', ann=FALSE)
+  par(mfrow=c(1,1))
+  inc <- 0
+  inFile <- inFile.photo()
+  for(i in seq(nrow(inFile))){
+    n.pic<-i
+    if(input$TableDimensionConvention == 'Linomat'){
+      largeur<-as.numeric(TableDimension()[n.pic,1])
+      dist.gauche<-as.numeric(TableDimension()[n.pic,2])
+      band<-as.numeric(TableDimension()[n.pic,3])
+      ecart<-as.numeric(TableDimension()[n.pic,4])
+      tolerance<-as.numeric(TableDimension()[n.pic,5])
+    }else{
+      largeur<-as.numeric(TableDimension()[n.pic,1])
+      band<-as.numeric(TableDimension()[n.pic,3])
+      dist.gauche<-as.numeric(TableDimension()[n.pic,2])-band/2
+      ecart<-as.numeric(TableDimension()[n.pic,4])-band
+      tolerance<-as.numeric(TableDimension()[n.pic,5])
+    }
+    nbr.band<-round((largeur-2*dist.gauche)/(band+ecart))
+    plot(c(0,200),c(0,100), type='n',ylab="",xlab="",bty='n')
+    rasterImage(f.read.image(as.character(inFile[n.pic,4]),native=T,format=input$mono.Format.type),0 , 0, largeur, 100)
+    for(j in seq(nbr.band)){
+      inc <- inc+1
+      text(x=(dist.gauche+tolerance+(j-1)*(band+ecart)),y=90,labels=dataX.edited()[inc,1],col="red",cex=1)
     }
   }
+}
 ```
 
 ```{r batch}
@@ -54,23 +54,23 @@ if(input$mono.knitr.file.name == T){
 if(input$mono.knitr.batch.simple == T){
   # kable(dataX.mono.pre())
   # kable(dataX.mono.pre(),row.names=F)
-  kable(dataX.mono.pre(),row.names=F)
+  kable(dataX.mono.pre(),row.names=F, caption = 'Batch table')
 }
 if(input$mono.knitr.batch.pred == T){
   # kable(dataX.mono.pre())
-  kable(cbind(dataX.mono.pre(),Pred.prediction.data()),row.names=F)
+  kable(cbind(dataX.mono.pre(),Pred.prediction.data()),row.names=F, caption = 'Batch table')
 }
 ```
 
-```{r chrom_before,fig.height=2.5,fig.width=7}
-### chromatogram juste 2
+```{r chrom_before,fig.height=3.3,fig.width=7}
+### chromatogram juste 2 
 if(input$mono.knitr.plot.brut == "2"){
 ################# image1  #################
-  par(mar=c(3,3,2,0),cex.lab=0.75,cex.axis=0.75,cex.main=0.75,mfrow=c(1,2),mgp=c(1.5,0.75,0))
+  par(cex.lab=1.5,mar=c(5, 4, 2, 0.5))
   n.band<-as.numeric(input$name.band.mono.bef.1)
-  f.plot.array(data.mono.2(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
+  f.plot.array(data.mono.2(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,cex=1.5)
   n.band<-as.numeric(input$name.band.mono.bef.2)
-  f.plot.array(data.mono.2(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
+  f.plot.array(data.mono.2(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,cex=1.5)
 }
 
 
@@ -78,9 +78,9 @@ if(input$mono.knitr.plot.brut == "2"){
 
 if(input$mono.knitr.plot.brut == "all"){
 ################# image1  #################
-  par(mar=c(3,3,2,0),cex.lab=0.75,cex.axis=0.75,cex.main=0.75,mfrow=c(1,2),mgp=c(1.5,0.75,0))
+  par(cex.lab=1.5,mar=c(5, 4, 2, 0.5))
   for(i in seq(nrow(dataX.mono.pre()))){
-    f.plot.array(data.mono.2(),i,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono)
+    f.plot.array(data.mono.2(),i,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,cex=1.5)
   }
 }
 ```
@@ -141,24 +141,24 @@ if(input$mono.knitr.prediction.summary.model == T | input$mono.knitr.var.select 
 }
 ```
 
-```{r chrom_after,fig.height=2.5,fig.width=7}
+```{r chrom_after,fig.height=3.3,fig.width=7}
 
 ### chromatogram juste 2
 if(input$mono.knitr.plot.net == "2"){
 ################# image1  #################
   # par(mar=c(3,4,2,0),mfrow=c(1,2),mgp=c(2,0.75,0))
-  par(mar=c(3,3,2,0),cex.lab=0.75,cex.axis=0.75,cex.main=0.75,mfrow=c(1,2),mgp=c(1.5,0.75,0))
+  par(cex.lab=1.5,mar=c(5, 4, 2, 0.5))
   n.band<-as.numeric(input$name.band.mono.aft.1)
-  f.plot.array(data.mono.3(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
+  f.plot.array(data.mono.3(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F,cex=1.5)
   n.band<-as.numeric(input$name.band.mono.aft.2)
-  f.plot.array(data.mono.3(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
+  f.plot.array(data.mono.3(),n.band,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F,cex=1.5)
 }
 
 if(input$mono.knitr.plot.net == "all"){
 ################# image1  #################
-  par(mar=c(3,3,2,0),cex.lab=0.75,cex.axis=0.75,cex.main=0.75,mfrow=c(1,2),mgp=c(1.5,0.75,0))
+  par(cex.lab=1.5,mar=c(5, 4, 2, 0.5))
   for(i in seq(nrow(dataX.mono.pre()))){
-    f.plot.array(data.mono.3(),i,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F)
+    f.plot.array(data.mono.3(),i,names(Truc.mono()),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct=F,cex=1.5)
   }
 }
 ```
@@ -182,83 +182,18 @@ if(input$mono.knitr.cluster.plot == T){
 #   label.color <- paste(input$col.cluster.1,collapse=', ')
 #   label.color <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'grey',label.color))))
   if(nrow(data) > 50){cex.value <- 50/nrow(data)}else{cex.value<-1}
-  plot(fit,main="Cluster Dentogram",xlab="",
-       sub=paste0("Distance Method: ",input$method.dist.cluster.1,"\n","Cluster Method: ",input$method.clust.cluster.1),cex=cex.value) # display dendogram
+  plot(fit,main="Cluster dentogram",xlab="",
+       ylab=paste0("Distance method: ",input$method.dist.cluster.1,"\n","Cluster method: ",input$method.clust.cluster.1),cex=cex.value) # display dendogram
   groups <- cutree(fit, k=input$cluster.nbr.1)
   rect.hclust(fit, k=input$cluster.nbr.1, border="red")
 }
 ### heatmap
 if(input$mono.knitr.heatmap.plot == T){
   data<-data.heatmap()
-  if(input$Var.heatmap.1 != "id"){rownames(data)<-paste(dataX.mono.pre()[,input$Var.heatmap.1],dataX.mono.pre()[,"id"],sep=" , ")}
+  if(input$Var.heatmap.1 != "ID"){rownames(data)<-paste(dataX.mono.pre()[,input$Var.heatmap.1],dataX.mono.pre()[,"ID"],sep=" , ")}
   heatmap(data[,rev(seq(dim(data)[2]))],Colv=NA)
 }
 ```
-
-```{r PCA_score_loading,fig.height=7,fig.width=7}
-### PCA
-if(input$mono.knitr.pca.score.loading == T){
-    dataX <- dataX.mono.pre()[,input$col.plot.pca]
-  par(xpd=T)
-  par(mfrow=c(4,3),mar=c(5,4,4,6),oma = c(0, 0, 3, 0))
-  hauteur<-input$hauteur.mono
-  dist.bas<-input$dist.bas.mono
-  Zf <- input$Zf.mono
-  maxi <- (hauteur-dist.bas)/(Zf-dist.bas)
-  mini <- -dist.bas/(Zf-dist.bas)
-  color <- c('red','green','blue','grey')
-  for(i in seq(4)){
-    data <- data.mono.3()[,,i]
-    model <- PCA(data)
-    scoreplot(model,col=factor(dataX),main=paste0(color[i],' channel'))
-    legend("topright", inset=c(-0.5,0),legend=unique(factor(dataX)),pch=1,col=unique(factor(dataX)))
-    data <- loadings.PCA(model)[,1]
-    RF = seq(maxi,mini,length.out=length(data))
-    plot(x=RF, xaxt = "n",
-         y=as.matrix(data),type="l",main=paste0("Loading plot: PC1: ",round(model$var[1]/model$totalvar*100,1),'%'),xlab=expression("R"['F']),ylab="intensity")
-    axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
-    data <- loadings.PCA(model)[,2]
-    RF = seq(maxi,mini,length.out=length(data))
-    plot(x=RF, xaxt = "n",
-         y=as.matrix(data),type="l",main=paste0("Loading plot: PC2: ",round(model$var[2]/model$totalvar*100,1),'%'),xlab=expression("R"['F']),ylab="intensity")
-    axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
-  }
-  mtext(input$pca.plot.score.loading.title, outer = TRUE, cex = 1.5)
-}
-```
-
-```{r PCA_score_loading_splitted,fig.height=7,fig.width=7}
-
-### PCA
-if(input$mono.knitr.pca.score.loading.split == T){
-    dataX <- dataX.mono.pre()[,input$col.plot.pca]
-  par(xpd=T)
-  par(mar=c(5,4,4,6),oma = c(0, 0, 3, 0))
-  hauteur<-input$hauteur.mono
-  dist.bas<-input$dist.bas.mono
-  Zf <- input$Zf.mono
-  maxi <- (hauteur-dist.bas)/(Zf-dist.bas)
-  mini <- -dist.bas/(Zf-dist.bas)
-  color <- c('red','green','blue','grey')
-  for(i in seq(4)){
-    data <- data.mono.3()[,,i]
-    model <- PCA(data)
-    scoreplot(model,col=factor(dataX),main=paste0(color[i],' channel'))
-    legend("topright", inset=c(-0.2,0),legend=unique(factor(dataX)),pch=1,col=unique(factor(dataX)))
-    data <- loadings.PCA(model)[,1]
-    RF = seq(maxi,mini,length.out=length(data))
-    plot(x=RF, xaxt = "n",
-         y=as.matrix(data),type="l",main=paste0("Loading plot: PC1: ",round(model$var[1]/model$totalvar*100,1),'%'),xlab=expression("R"['F']),ylab="intensity")
-    axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
-    data <- loadings.PCA(model)[,2]
-    RF = seq(maxi,mini,length.out=length(data))
-    plot(x=RF, xaxt = "n",
-         y=as.matrix(data),type="l",main=paste0("Loading plot: PC2: ",round(model$var[2]/model$totalvar*100,1),'%'),xlab=expression("R"['F']),ylab="intensity")
-    axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
-  }
-}
-```
-
 
 
 ```{r model}

@@ -25,6 +25,7 @@ require("prospectr");require("DiscriMiner");require("baseline");require("knitr")
 require("xtable");require("ptw");require("dtw");
 require('randomForest');require('kernlab');require('ipred');
 require('extraTrees');require('evtree')
+require("threejs")
 
 # require('shinyRGL');require('rgl')
 
@@ -32,7 +33,7 @@ require('shinyAce');require('shinydashboard');require('d3heatmap');
 
 
 
-shinyUI(navbarPage(title="rTLC",
+shinyUI(navbarPage(title="rTLC V.1.0",
                    tabPanel("Data input",
                             tags$head(tags$style(type="text/css", "tfoot {display: table-header-group}")),
                             tags$head(tags$style(HTML(".shiny-output-error-validation {color: red;font-size: 24px}"))),
@@ -41,21 +42,22 @@ shinyUI(navbarPage(title="rTLC",
                                                  border-width: 2px;right: 10px;height: 36px;width: 50%;background-color: #EEF8FF;margin: 0px;padding: 2px 3px;opacity: 1;}")),
                             fluidRow(
                               column(width=3,
-                                selectizeInput('filedemouse','Data to use',
+                                radioButtons('filedemouse','Data to use',
                                                choices=c('Your own data' = 'YourOwnData',
                                                          'demo 1: Medicinal plants, 20 samples' = 'demo1',
-#                                                          'demo 2: Medicinal plants, 80 samples'='demo2',
+                                                         'demo 2: Propolis dataset'='demoPropolis',
+                                                          'demo 3: Medicinal plants, 80 samples'='demo2',
 #                                                          'demo 3: Carbohydrates, 80 samples'='demo3',
-#                                                          'demo 4: Propolis, 55 samples'='demo4',
+                                                         # 'demo 4: Propolis, 55 samples'='demo4',
                                                          'Saved data' = 'checkpoint',
                                                          'Predict data - QC'='QC'),
                                                selected='demo1'),
                                 conditionalPanel(condition = "input.filedemouse == 'YourOwnData' | input.filedemouse == 'QC'",
                                                  tags$hr(),
-                                                 h4("Load"),
+                                                 h4("Upload"),
                                                  fileInput('fileX', 'Choice of the batch '),
-                                                 selectizeInput("mono.Format.type","Select the format",choices=c("jpeg","png","tiff"),selected="jpeg"),
-                                                 fileInput('filemonop', 'Choice of the plate(s) file',multiple=T)
+                                                 selectizeInput("mono.Format.type","Select the image format",choices=c("jpeg","png","tiff"),selected="jpeg"),
+                                                 fileInput('filemonop', 'Choice of the plate file(s)',multiple=T)
                                 ),
                                 conditionalPanel(condition = "input.filedemouse == 'QC'",
                                                  tags$hr(),
@@ -66,43 +68,45 @@ shinyUI(navbarPage(title="rTLC",
                                                  fileInput("checkpoint.1.upload","Rdata file to upload")
                                 ),
                                hr(),
-                               textInput('checkpoint.1.download.text','filename','rTLC_checkpoint_1'),
+                               textInput('checkpoint.1.download.text','Filename','rTLC_checkpoint_1'),
                                downloadButton("checkpoint.1.download",'Save Chromatograms'),
                                tags$hr(),
-                               textInput('checkpoint.1.download.zip.text','filename','rTLC_zip_export'),
+                               textInput('checkpoint.1.download.zip.text','Filename','rTLC_zip_export'),
                                downloadButton("checkpoint.1.download.zip",'Save zip file with csv')
                               ),
                               column(width=9,
                                      wellPanel(
                                        tabsetPanel(
-                                         tabPanel("Chromatograms Extraction",
+                                         tabPanel("Chromatogram extraction",
                                                   fluidRow(
                                                     shinydashboard::box(title=NULL,collapsible = F,width=8,height=350,
                                                         uiOutput("select.image.redim.mono"),
                                                         imageOutput("image.redim.mono")
                                                     ),
-                                                    shinydashboard::box(title="Vertical Dimensions (mm)",collapsible = F,width=4,height=350,
+                                                    shinydashboard::box(title="Vertical dimensions (mm)",collapsible = F,width=4,height=350,
                                                         tableOutput('TableDimensionVerticale')
                                                     ),
-                                                    shinydashboard::box(title="Horizontal Dimensions (mm)",collapsible = F,width=12,height=500,
+                                                    shinydashboard::box(title="Horizontal dimensions (mm)",collapsible = F,width=12,height=500,
                                                         tableOutput('TableDimension'),
-                                                        radioButtons('TableDimensionConvention','Convention to use in the Horizontal table',choices=c('Linomat','ATS-4'),selected='ATS-4'),
-                                                        textInput('TableDimensionSave.text','filename','TableDimensionSave'),
+                                                        radioButtons('TableDimensionConvention','Convention how to use the horizontal table',choices=c("Calculation from the exterior of the band"='Linomat',
+                                                                                                                                                       "Calculation from the middle of the band"='ATS-4' ),selected='ATS-4'),
+                                                        textInput('TableDimensionSave.text','Filename','TableDimensionSave'),
                                                         downloadButton('TableDimensionSave','Save the Dimension table'),
                                                         fileInput("TableDimensionUpload","Upload the saved table"),
                                                         plotOutput('TableDimensionPlot')
                                                     )
                                                   )
                                          ),
-                                         tabPanel("batch",
+                                         tabPanel("Batch",
                                                   column(3,
                                                          hr(),
                                                          uiOutput('batch.Truc.mono'),
-                                                         h4('Column Filter: Keep only selected, if none, keep all.'),
+                                                         h4('Column filter: Keep only selected, if none, keep all.'),
                                                          uiOutput('batch.filter')),
                                                   column(9,hr(),tableOutput("table1"))
                                          ),
-                                         tabPanel("Chromatograms",
+                                         tabPanel("Track plot",
+                                                  h5("Use this tab to compare two tracks, use the pdf report to access all of them."),
                                                   uiOutput('choice.band.mono.bef.1'),
                                                   flowLayout(
                                                     plotOutput("plot.v.mono.bef.1")
@@ -112,19 +116,20 @@ shinyUI(navbarPage(title="rTLC",
                                                     plotOutput("plot.v.mono.bef.2")
                                                   )
                                          ),
-                                         tabPanel("Band Comparison",
+                                         tabPanel("Chromatogram comparison",
                                                   uiOutput("choice.band.m.comp.1"),
                                                   imageOutput("image.comparaison.1",height=500)
                                          ),
-                                         tabPanel("Chromatograms comparison",
+                                         tabPanel("Densitogram comparison",
                                                   uiOutput('choice.band.mono.bef.tot'),
                                                   plotOutput("plot.v.mono.bef.tot")
                                          ),
                                          tabPanel('Image reconstruction',
+                                                  h5("This tab shows how the densitograms are extracted from the chromatograms."),
                                                   uiOutput("select.image.reconstruct"),
                                                   plotOutput('image.reconstruct')
                                                   ),
-                                         tabPanel("Prediction (QC only)",
+                                         tabPanel("Prediction (QC)",
                                                   tableOutput("table2")
                                          )
 
@@ -136,13 +141,12 @@ shinyUI(navbarPage(title="rTLC",
                    tabPanel("Data preprocessing",
                             sidebarLayout(
                               sidebarPanel(
-                                sliderInput('Train.partition','Part of data to train with (use it for predictive statistics)',min=0,max=1,value = 1),
-                                
-                                h4("Here you can choose different data preprocessing before starting the analysis."),
-                                tags$hr(),
-                                selectizeInput('Preprocess.order','Preprocess choice (order is important)',
-                                               choices=c('medianFilter','gammaCorrection','Smoothing','Baseline.correction','Warping','Standard.Normal.Variate',
-                                                         'Mean.centering','Autoscaling'),
+                                sliderInput('Train.partition','Proportion of training data (needed for predictive statistics)',min=0,max=1,value = 0.75),
+                                 tags$hr(),
+                                selectizeInput('Preprocess.order','Selcetion of preprocessing algorithms (order is important)',
+                                               choices=c("Median filter" = 'medianFilter',"Gamma correction" = 'gammaCorrection','Smoothing' = 'Smoothing',
+                                                         'Baseline correction' = 'Baseline.correction','Warping' = 'Warping','Standard normal variate' ='Standard.Normal.Variate',
+                                                         'Mean centering' = 'Mean.centering','Autoscaling' = 'Autoscaling'),
                                                selected='',multiple=T)
 
                               ),
@@ -150,81 +154,81 @@ shinyUI(navbarPage(title="rTLC",
                                 tabsetPanel(
                                   tabPanel("Preprocess Details",
                                            column(3,
-                                                  h4("Median Filtering"),
-                                                  numericInput('preprocess.medianfilter','The half-size of the filtering window',3),
-                                                  h4('Gamma Correction'),
+                                                  h4("Median filter"),
+                                                  numericInput('preprocess.medianfilter','Half-size of the filtering window',3),
+                                                  h4('Gamma correction'),
                                                   numericInput('preprocess.gammacorrection','Value',2),
                                                   h4("Smoothing"),
-                                                  helpText(   a("Click Here for help with this smoothing feature",target="_blank",
-                                                                href="http://www.inside-r.org/node/206625")
+                                                  helpText(   a("Help for this feature",target="_blank",
+                                                                href="https://www.rdocumentation.org/packages/prospectr/versions/0.1.3/topics/savitzkyGolay?")
                                                   ),
                                                   helpText(   a("Wikipedia link",target="_blank",
                                                                 href="https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter")
                                                   ),
-                                                  numericInput("window.size","size of the windows",3,min=3,max=NA,step=2),
-                                                  numericInput("poly.order","polynomial order",1),
-                                                  numericInput("diff.order","differentiation order",0)
+                                                  numericInput("window.size","Size of the window",3,min=3,max=NA,step=2),
+                                                  numericInput("poly.order","Polynomial order",1),
+                                                  numericInput("diff.order","Differentiation order",0)
                                                   ),
                                            column(3,
                                                   h4("Baseline"),
-                                                  helpText(   a("Click Here for help with the Baseline feature",target="_blank",
+                                                  helpText(   a("Help for this feature",target="_blank",
                                                                 href="http://cran.r-project.org/web/packages/baseline/baseline.pdf")
                                                   ),
-                                                  selectizeInput("baseline", "type of baseline", choices=c("als","fillPeaks","irls","lowpass","medianWindow","modpolyfit","peakDetection","rfbaseline","rollingBall"),select=NULL),
+                                                  selectizeInput("baseline", "Type of baseline", choices=c("als","fillPeaks","irls","lowpass","medianWindow","modpolyfit","peakDetection","rfbaseline","rollingBall"),select=NULL),
                                                   conditionalPanel(condition="input.baseline=='als'",
-                                                                   numericInput("lambda.1","lambda : 2nd derivative constraint",5),
-                                                                   numericInput("p","p : weighting of positive residuals",0.05),
-                                                                   numericInput("maxit.1","maxit : maximum number of iterations",20)
+                                                                   numericInput("lambda.1","lambda: 2nd derivative constraint",5),
+                                                                   numericInput("p","p: weighting of positive residuals",0.05),
+                                                                   numericInput("maxit.1","maxit: maximum number of iterations",20)
                                                   ),
                                                   conditionalPanel(condition="input.baseline=='fillPeaks'",
-                                                                   numericInput("lambda.2","lambda : 2nd derivative constraint for primary smoothing",6),
-                                                                   numericInput("hwi","hwi : half width of local windows",100),
-                                                                   numericInput("it","it : number of iterations in suppression loop",10),
-                                                                   numericInput("int","int : number of buckets to divide spectra into",200)
+                                                                   numericInput("lambda.2","lambda: 2nd derivative constraint for primary smoothing",6),
+                                                                   numericInput("hwi","hwi: half width of local windows",100),
+                                                                   numericInput("it","it: number of iterations in suppression loop",10),
+                                                                   numericInput("int","int: number of buckets to divide spectra into",200)
                                                   ),
                                                   conditionalPanel(condition="input.baseline=='irls'",
-                                                                   numericInput("lambda1","lambda1 : 2nd derivative constraint for primary smoothing",5),
-                                                                   numericInput("lambda2","lambda2 : 2nd derivative constraint for secondary smoothing",9),
-                                                                   numericInput("maxit.2","maxit : maximum number of iterations",200),
-                                                                   numericInput("wi","wi : weighting of positive residuals",0.05)
+                                                                   numericInput("lambda1","lambda1: 2nd derivative constraint for primary smoothing",5),
+                                                                   numericInput("lambda2","lambda2: 2nd derivative constraint for secondary smoothing",9),
+                                                                   numericInput("maxit.2","maxit: maximum number of iterations",200),
+                                                                   numericInput("wi","wi: weighting of positive residuals",0.05)
                                                   ),
                                                   conditionalPanel(condition="input.baseline=='lowpass'",
-                                                                   numericInput("steep","steep : steepness of filter curve",2),
-                                                                   numericInput("half","half : half way point of filter curve",5)
+                                                                   numericInput("steep","steep: steepness of filter curve",2),
+                                                                   numericInput("half","half: half way point of filter curve",5)
                                                   ),
                                                   conditionalPanel(condition="input.baseline=='medianWindow'",
-                                                                   numericInput("hwm","hwm : window half width for local medians",300),
-                                                                   numericInput("hws","hws : window half width for local smoothing",5),
-                                                                   checkboxInput("end","end : original endpoint handling",F)
+                                                                   numericInput("hwm","hwm: window half width for local medians",300),
+                                                                   numericInput("hws","hws: window half width for local smoothing",5),
+                                                                   checkboxInput("end","end: original endpoint handling",F)
                                                   ),
                                                   conditionalPanel(condition="input.baseline=='modpolyfit'",
-                                                                   numericInput("degree","degree : degree of polynomial",4),
-                                                                   numericInput("tol","tol : tolerance of difference between iterations",0.001),
-                                                                   numericInput("rep","rep : maximum number of iterations",100)
+                                                                   numericInput("degree","degree: degree of polynomial",4),
+                                                                   numericInput("tol","tol: tolerance of difference between iterations",0.001),
+                                                                   numericInput("rep","rep: maximum number of iterations",100)
                                                   ),
                                                   conditionalPanel(condition="input.baseline=='peakDetection'",
-                                                                   numericInput("left","left : smallest window size for peak widths",30),
-                                                                   numericInput("right","right : largest window size for peak widths",300),
-                                                                   numericInput("lwin","lwin : Smallest window size for minimums and medians in peak removed spectra",50),
-                                                                   numericInput("rwin","rwin : Largest window size for minimums and medians in peak removed spectra",50),
-                                                                   numericInput("snminimum","snminimum : Minimum signal to noise ratio for accepting peaks",10)
+                                                                   numericInput("left","left: smallest window size for peak widths",30),
+                                                                   numericInput("right","right: largest window size for peak widths",300),
+                                                                   numericInput("lwin","lwin: Smallest window size for minimums and medians in peak removed spectra",50),
+                                                                   numericInput("rwin","rwin: Largest window size for minimums and medians in peak removed spectra",50),
+                                                                   numericInput("snminimum","snminimum: Minimum signal to noise ratio for accepting peaks",10)
                                                   ),
                                                   conditionalPanel(condition="input.baseline=='rollingBall'",
-                                                                   numericInput("wm","wm : Width of local window for minimization/maximization",200),
-                                                                   numericInput("ws","ws : Width of local window for smoothing",200)
+                                                                   numericInput("wm","wm: Width of local window for minimization/maximization",200),
+                                                                   numericInput("ws","ws: Width of local window for smoothing",200)
                                                   )
                                            ),
                                            column(3,
                                                   h4("Warping"),
-                                                  helpText(   a("Wikipedia link about peak alignment",target="_blank",
+                                                  helpText(   a("Wikipedia link",target="_blank",
                                                                 href="https://en.wikipedia.org/wiki/Dynamic_time_warping")
                                                   ),
-                                                  selectizeInput("warpmethod","Warping method to use",choices=(c("ptw",'dtw')),selected="ptw"),
+                                                  selectizeInput("warpmethod","Warping method",choices=(c("ptw",'dtw')),selected="ptw"),
                                                   conditionalPanel(condition="input.warpmethod=='ptw'",
-                                                                   helpText(   a("Click Here for help with the PTW funtion",target="_blank",
-                                                                                 href="http://www.inside-r.org/packages/cran/ptw/docs/ptw")
+                                                                   helpText(   a("Help for this feature",target="_blank",
+                                                                                 href="https://www.rdocumentation.org/packages/ptw/versions/1.9-11/topics/ptw")
                                                                    ),
-                                                                   #p("The best results I had was with respectively : ref=1, 'c(0,1,0)',individual,WCC,20 "),
+                                                                   #p("The best results I had was with respectively: ref=1, 'c(0,1,0)',individual,WCC,20 "),
                                                                    uiOutput('ptw.warp.ref')
                                                                    # numericInput("ptw.warp.ref","id of the reference",1)#,
                                                                    #textInput("ptw.init.coef","init.coef","c(0,1,0)"),
@@ -233,31 +237,31 @@ shinyUI(navbarPage(title="rTLC",
                                                                    #numericInput("ptw.trwdth","trwdth",20)
                                                   ),
                                                   conditionalPanel(condition="input.warpmethod=='dtw'",
-                                                                   helpText(   a("Click Here for help with the DTW funtion",target="_blank",
-                                                                                 href="http://www.inside-r.org/packages/cran/dtw/docs/dtw")
+                                                                   helpText(   a("Help for this feature",target="_blank",
+                                                                                 href="https://www.rdocumentation.org/packages/dtw/versions/1.18-1/topics/dtw?")
                                                                    ),
                                                                    uiOutput('dtw.warp.ref'),
                                                                    # numericInput("ptw.warp.ref","id of the reference",1),
-                                                                   checkboxInput('dtw.split','Do the alignment on the 4 channels separatly',F)
+                                                                   checkboxInput('dtw.split','Do the alignment on the 4 channels separately.',F)
                                                   )
                                                   ),
                                            column(3,
-                                                  h4("Standardisation"),
-                                                  helpText(   a("Click Here for help with the SNV feature",target="_blank",
-                                                                href="http://www.inside-r.org/packages/cran/prospectr/docs/standardNormalVariate")
+                                                  h4("Standardization"),
+                                                  helpText(   a("Help for standard normal variate",target="_blank",
+                                                                href="https://www.rdocumentation.org/packages/prospectr/versions/0.1.3/topics/standardNormalVariate")
                                                   ),
-                                                  helpText(   a("Click Here for help with the Autoscale feature",target="_blank",
+                                                  helpText(   a("Help for autoscaling",target="_blank",
                                                                 href="http://stat.ethz.ch/R-manual/R-devel/library/base/html/scale.html")
                                                   )
                                                   )
                                            ),
-                                  tabPanel("Chromatograms",
+                                  tabPanel("Track plot",
                                            uiOutput('choice.band.mono.aft.1'),
                                            plotOutput("plot.v.mono.aft.1"),
                                            uiOutput('choice.band.mono.aft.2'),
                                            plotOutput("plot.v.mono.aft.2")
                                   ),
-                                  tabPanel("Chromatograms comparison",
+                                  tabPanel("Densitograms comparison",
                                            uiOutput('choice.band.mono.aft.tot'),
                                            plotOutput("plot.v.mono.aft.tot")
                                   )
@@ -266,105 +270,106 @@ shinyUI(navbarPage(title="rTLC",
                             )
                    ),
                    tabPanel('Variables selection',
+                            h4("Select channels and Rf ranges"),
                             column(6,
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_1", label = NULL, value=T)),
-                                     column(2,selectizeInput("VS_select_1", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=1)),
+                                     column(2,selectizeInput("VS_select_1", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=1)),
                                      column(9,uiOutput('VS_slider_1'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_2", label = NULL, value=T)),
-                                     column(2,selectizeInput("VS_select_2", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=2)),
+                                     column(2,selectizeInput("VS_select_2", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=2)),
                                      column(9,uiOutput('VS_slider_2'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_3", label = NULL, value=T)),
-                                     column(2,selectizeInput("VS_select_3", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=3)),
+                                     column(2,selectizeInput("VS_select_3", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=3)),
                                      column(9,uiOutput('VS_slider_3'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_4", label = NULL, value=T)),
-                                     column(2,selectizeInput("VS_select_4", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_4", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_4'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_5", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_5", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=1)),
+                                     column(2,selectizeInput("VS_select_5", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=1)),
                                      column(9,uiOutput('VS_slider_5'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_6", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_6", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=2)),
+                                     column(2,selectizeInput("VS_select_6", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=2)),
                                      column(9,uiOutput('VS_slider_6'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_7", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_7", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=3)),
+                                     column(2,selectizeInput("VS_select_7", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=3)),
                                      column(9,uiOutput('VS_slider_7'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_8", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_8", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_8", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_8'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_9", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_9", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=1)),
+                                     column(2,selectizeInput("VS_select_9", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=1)),
                                      column(9,uiOutput('VS_slider_9'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_10", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_10", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=2)),
+                                     column(2,selectizeInput("VS_select_10", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=2)),
                                      column(9,uiOutput('VS_slider_10'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_11", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_11", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=3)),
+                                     column(2,selectizeInput("VS_select_11", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=3)),
                                      column(9,uiOutput('VS_slider_11'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_12", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_12", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_12", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_12'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_13", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_13", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_13", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_13'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_14", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_14", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_14", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_14'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_15", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_15", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_15", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_15'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_16", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_16", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_16", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_16'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_17", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_17", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_17", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_17'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_18", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_18", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_18", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_18'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_19", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_19", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_19", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_19'))
                                    ),
                                    fluidRow(
                                      column(1,checkboxInput("VS_check_20", label = NULL, value=F)),
-                                     column(2,selectizeInput("VS_select_20", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'grey'=4),selected=4)),
+                                     column(2,selectizeInput("VS_select_20", label = NULL, choices=c('red'=1,'green'=2,'blue'=3,'gray'=4),selected=4)),
                                      column(9,uiOutput('VS_slider_20'))
                                    )
 
@@ -378,66 +383,61 @@ shinyUI(navbarPage(title="rTLC",
                               tabPanel("PCA",
                                        sidebarLayout(
                                          sidebarPanel(
-                                           helpText(   a("Click Here for help with the PCA feature",target="_blank",
-                                                         href="http://www.inside-r.org/node/98667")
+                                           
+                                           h4("Choice of the parameters for PCA"),
+                                           helpText(   a("Help for this feature",target="_blank",
+                                                         href="https://www.rdocumentation.org/packages/ChemometricsWithR/versions/0.1.9/topics/PCA")
                                            ),
-                                           h4("Choice of the parameters for the PCA"),
                                            tags$hr(),
                                            h4("Variable of interest"),
                                            uiOutput("select.col.plot.pca"),
                                            uiOutput("select.shape.plot.pca"),
                                            uiOutput("select.label.plot.pca"),
                                            tags$hr(),
-                                           # h4("Channel of interest"),
-                                           # checkboxGroupInput("col.pca", "Channel to select for the PCA", choices=c("red"=1,"green"=2,"blue"=3,"grey"=4),select=seq(4)),
-                                           tags$hr(),
-                                           h4("Other options"),
                                            selectizeInput('PCA.comp.a', '1st component for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC1"),
                                            selectizeInput('PCA.comp.b', '2nd component for the plot', choice=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"),select="PC2"),
                                            checkboxInput('pca.ellipse','Plot the ellipse according to the color',F),
                                            checkboxInput('pca.axis','Plot the axis',F),
-                                           numericInput('pca.ellipse.level','Level to calculate the ellipse',0.95),
-                                           selectizeInput("pca.col.palette","palette color (if color used)",choices = c("Set1","Set2","Set3","Greys","Spectral","Pastel1","Pastel2","Paired","Dark2","Accent")),
+                                           numericInput('pca.ellipse.level','Confidence interval to calculate the ellipse',0.95),
+                                           selectizeInput("pca.col.palette","Palette color",choices = c("default","Set1","Set2","Set3","Greys","Spectral","Pastel1","Pastel2","Paired","Dark2","Accent")),
                                            tableOutput("Table.dim.just.pca.label")
                                          ),
                                          mainPanel(
                                            tabsetPanel(
                                              tabPanel("PCA",
-                                                      textInput("pca.plot.1.title","title of the graph","Principal Component Analysis"),
+                                                      textInput("pca.plot.1.title","Title of the graph","Principal component analysis"),
                                                       plotOutput("pca.plot.1",height="800px"),
                                                       dataTableOutput("pca.table.1"),
                                                       verbatimTextOutput("pca.summary.1")
                                              ),
+                                             tabPanel("PCA 3D",
+                                                      uiOutput("PCA_3d")
+                                             ),
                                              tabPanel("Loading Plot",
-                                                      radioButtons('pca.loading.choice','Componant',choices=seq(10),selected=1),
-                                                      p('The RF value here are wrong, all the channels were merged during the variables selection so RF do not make sense anymore, except if only one full channel is used'),
+                                                      radioButtons('pca.loading.choice','Component',choices=seq(10),selected=1),
                                                       plotOutput("pca.loading"),
-                                                      checkboxInput('pcaloadinglocalmaxima','pick peak for local maxima',F),
-                                                      numericInput('pca.loading.local.maxima.span','Neighbourhood, used to define local maxima',20),
-                                                      checkboxInput('pcaloadinglocalminima','pick peak for local minima',F),
-                                                      numericInput('pca.loading.local.minima.span','Neighbourhood, used to define local minima',20),
+                                                      checkboxInput('pcaloadinglocalmaxima','Pick peak for local maxima',F),
+                                                      numericInput('pca.loading.local.maxima.span','Span of local maxima',20),
+                                                      checkboxInput('pcaloadinglocalminima','Pick peak for local minima',F),
+                                                      numericInput('pca.loading.local.minima.span','Span of local minima',20),
                                                       # conditionalPanel(condition="input.pcaloadinglocalmaxima==T",
-                                                                       verbatimTextOutput('pca.loading.local.maxima'),
-                                                      # ),
-                                                      # conditionalPanel(condition="input.pcaloadinglocalminima==T",
-                                                                       verbatimTextOutput('pca.loading.local.minima')
-                                                      # )
+                                                      HTML("<h4><i>R</i><sub>F</sub>  values of local maxima</h4>"),
+                                                      verbatimTextOutput('pca.loading.local.maxima'),
+                                                      HTML("<h4><i>R</i><sub>F</sub>  values of local minima</h4>"),
+                                                      verbatimTextOutput('pca.loading.local.minima')
                                                       ),
 #                                              tabPanel("PCA3D",
 #                                                       webGLOutput("myWebGL.1",height="600px")
 #                                              ),
                                              tabPanel("Outlier",
-                                                      checkboxGroupInput("comp.outlier.pca.1","Choies of the component of the PCA to use",choices=seq(10),selected=c(1,2)),
-                                                      numericInput("quantile.outlier.pca.1","quantile to use for the cutoff",0.975),
+                                                      helpText(   a("Help for this feature",target="_blank",
+                                                                    href="https://www.rdocumentation.org/packages/chemometrics/versions/1.4.1/topics/Moutlier")
+                                                      ),
+                                                      checkboxGroupInput("comp.outlier.pca.1","PCA component",choices=seq(10),selected=c(1,2)),
+                                                      numericInput("quantile.outlier.pca.1","Quantile to use for the cutoff",0.975,min=0,max=1),
                                                       plotOutput("quantile.outlier.pca.1"),
-                                                      verbatimTextOutput("quantile.outlier.pca.2")
-                                             ),
-                                              tabPanel('score and loading together',
-                                                       p('Note that for this graphic, the variable selection is by passed, could evolve in the futur though'),
-                                                       uiOutput('VS_slider_score.loading'),
-                                                       uiOutput('pca.plot.score.loading.title'),
-                                                       plotOutput('pca.plot.score.loading',height='800px')
-                                                       )
+                                                      dataTableOutput("quantile.outlier.pca.table")
+                                             )
                                            )
                                          )
                                        )
@@ -445,28 +445,26 @@ shinyUI(navbarPage(title="rTLC",
                               tabPanel("Cluster",  ####### cluster #######
                                        sidebarLayout(
                                          sidebarPanel(
-                                           helpText(   a("Click Here for help with the Cluster feature",target="_blank",
-                                                         href="http://www.inside-r.org/r-doc/stats/dist")
+                                           h4("Ward hierarchical clustering parameters"),
+                                           helpText(   a("Help with this feature",target="_blank",
+                                                         href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/dist.html")
                                            ),
-                                           helpText(   a("and here",target="_blank",
-                                                         href="http://www.inside-r.org/r-doc/stats/hclust")
+                                           helpText(   a("Further help with this feature",target="_blank",
+                                                         href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/hclust.html")
                                            ),
-                                           h4("Ward Hierarchical Clustering parameters"),
                                            tags$hr(),
                                            h4("Variable of interest"),
                                            uiOutput("select.col.plot.cluster.1"),
                                            tags$hr(),
-                                           # h4("Channel of interest"),
-                                           # checkboxGroupInput("col.cluster.1","select the channel for the cluster",choices=c("red"=1,"green"=2,"blue"=3,"grey"=4),select=seq(4)),
-                                           tags$hr(),
-                                           h4("Other options"),
-                                           selectizeInput("method.dist.cluster.1","select the method for the distance",choices=c("euclidean", "maximum", "manhattan", "canberra", "binary","minkowski"),select="euclidean"),
-                                           selectizeInput("method.clust.cluster.1","select the method for the cluster",choices=c("ward", "single", "complete", "average", "mcquitty", "median","centroid"),select="ward"),
-                                           numericInput("cluster.nbr.1","number of cluster to cut into the tree",5)
+                                           selectizeInput("method.dist.cluster.1","Method for distance calculation",
+                                                          choices=c("Euclidean" = "euclidean" , "Maximum"="maximum", "Manhattan"="manhattan", "Canberra"="canberra", "Binary"="binary","Minkowski"="minkowski"),select="euclidean"),
+                                           selectizeInput("method.clust.cluster.1","Method for cluster analysis",
+                                                          choices=c("Ward"="ward", "Single"="single", "Complete"="complete", "Average"="average", "Mcquitty"="mcquitty", "Median"="median","Centroid"="centroid"),select="ward"),
+                                           numericInput("cluster.nbr.1","Number of clusters",5)
                                          ),
                                          mainPanel(
                                            tabsetPanel(
-                                             tabPanel("Hierarchical Clustering",
+                                             tabPanel("Hierarchical clustering",
                                                       plotOutput("plot.cluster.1.1",height=800),
                                                       dataTableOutput("Cluster.table.1")
                                              )
@@ -476,19 +474,13 @@ shinyUI(navbarPage(title="rTLC",
                               tabPanel("Heatmap",  ####### Heatmap #######
                                        sidebarLayout(
                                          sidebarPanel(
-                                           helpText(   a("Click Here for help with the Heatmap feature",target="_blank",
-                                                         href="http://www.inside-r.org/r-doc/stats/heatmap")
-                                           ),
                                            h4("Heatmap"),
+                                           helpText(   a("Help with this feature",target="_blank",
+                                                         href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/heatmap.html")
+                                           ),
                                            tags$hr(),
                                            h4("Variable of interest"),
-                                           uiOutput("select.col.plot.heatmap.1"),
-                                           tags$hr(),
-                                           # h4("Channel of interest"),
-                                           # checkboxGroupInput("col.heatmap.1","select the channel for the cluster",choices=c("red"=1,"green"=2,"blue"=3,"grey"=4),select=seq(4)),
-                                           tags$hr(),
-                                           h4("Other options"),
-                                           p("None")
+                                           uiOutput("select.col.plot.heatmap.1")
                                          ),
                                          mainPanel(
                                            tabsetPanel(
@@ -501,68 +493,57 @@ shinyUI(navbarPage(title="rTLC",
                                            ))
                                        )
                               ),
-                              tabPanel("DPE",
+                              tabPanel("R console",
                                        wellPanel(
                                          tabsetPanel(
                                            tabPanel("Editor",
                                                     aceEditor("DPEeditor","
 ## This is a comment
 ## This feature allow you to directly enter R code to perform data analysis
-## Two data are used here :
-## data : the chromatograms, they are store in a 3d array
+## Two data are used here:
+## data: the independent variables, store in a matrix
 ## each row is an observation
 ## each column is a variable (a Retention time)
-## each layer is a channel (1 for red, 2 for green, 3 for blue and 4 for grey)
-## dataX : the batch file
+## dataX: the batch file
 
 ## Uncomment the next line to plot the 1st chromatogram of the red channel
-# plot(data['1',,1],type='l')
+# plot(data[1,],type='l')
 
 ## Uncomment the next line to plot the loading plot of the PCA model for the green channel
-# loadingplot(PCA(data[,,2]))
+# loadingplot(PCA(data))
 
-## Uncomment the next line to plot the score plot of the PCA model for the grey channel
-# scoreplot(PCA(data[,,2]))
+## Uncomment the next line to plot the score plot of the PCA model for the gray channel
+# scoreplot(PCA(data))
 
 ## Uncomment the next line to plot the code of the kohonen som model for the green channel
-# plot(kohonen::som(data[,,2],somgrid(2,2,'hexagonal')),type='codes')
+# plot(kohonen::som(data,somgrid(2,2,'hexagonal')),type='codes')
 
 ## Map of som kohonen
-# model <- kohonen::som(data[,,2],somgrid(2,2,'hexagonal'))
+# model <- kohonen::som(data,somgrid(2,2,'hexagonal'))
 # plot(model,type='mapping',labels=paste0(dataX$Drug,dataX$id,sep=' ; '))
 
 ## Uncomment the next line to plot the hist of the kmeans model for the green channel
-# hist(kmeans(data[,,2],center=3,iter.max=1,nstart=1,algorithm='Hartigan-Wong')$cluster)
+# hist(kmeans(data,center=3,iter.max=1,nstart=1,algorithm='Hartigan-Wong')$cluster)
 
 ## Uncomment the next lines to plot the hist of the kmeans model for the green channel
-model <- kmeans(data[,,2],center=3,iter.max=1,nstart=1,algorithm='Hartigan-Wong')
+model <- kmeans(data,center=3,iter.max=1,nstart=1,algorithm='Hartigan-Wong')
 Var.Dep <- 'Drug'
 data <- data.frame(box = model$cluster,Var.Dep=dataX[,Var.Dep])
 print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
 
-## svm try
-#reduce <- PCA(data[,,4])$scores[,1:10]
-#colnames(reduce) <- paste0('PC',seq(10))
-#colnames(reduce)
-#model <- svm(x=reduce,y=factor(dataX$drug),type='C-classification')
-#print(summary(model))
-#table.conf <- table(dataX$drug,predict(model,newdata=reduce))
-#diag(table.conf) <- 0
-#print(sum(table.conf)/nrow(dataX))
-#table(dataX$drug,predict(model,newdata=data[,,4]))
 
-## plsDA try
-#model <- plsDA(data[,,3],dataX$drug,autosel=F,comps=5)
-#plot(model)
-#print(model$error_rate)
-#print(model$confusion)
 ",mode="r")
                                                     ),
                                            tabPanel("Plot",
+                                                    numericInput("DPEplot_width", "Plot Width (px)",value = 800),
+                                                    numericInput("DPEplot_height", "Plot Height (px)", value = 800),
                                                     imageOutput("DPEplot")
                                            ),
-                                           tabPanel("Print",
-                                                    verbatimTextOutput("DPEprint")
+#                                            tabPanel("Print",
+#                                                     verbatimTextOutput("DPEprint")
+#                                            ),
+                                           tabPanel('Template',
+                                                    includeMarkdown('Exploratory-template.md')
                                            )
                                                     )
                                          )
@@ -573,9 +554,10 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                               sidebarPanel(width = 3,
                                            uiOutput('Train.model.algo'),
                                            uiOutput('Train.model.algo.wiki'),
+                                           checkboxInput("Train.model.algo.all","Enable all algorithms (experimentale)",F),
                                            uiOutput("Train.column"),
-                                           radioButtons('Trainproblem','Type',choices=c('classification','regression'),selected='classification'),
-                                           # checkboxGroupInput("col.Pred","Choice of the channel(s)",choices=c("red"=1,"green"=2,"blue"=3,"grey"=4),select=seq(4)),
+                                           radioButtons('Trainproblem','Type',choices=c("Classification"='classification',"Regression"='regression'),selected='classification'),
+                                           # checkboxGroupInput("col.Pred","Choice of the channel(s)",choices=c("red"=1,"green"=2,"blue"=3,"gray"=4),select=seq(4)),
                                            hr(),
                                            div(class="btn btn-default action-button shiny-bound-input",actionButton('Train.go','Train')),
                                            hr(),
@@ -584,18 +566,21 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                               ),
                               mainPanel(width=9,
                                 tabsetPanel(
-                                  tabPanel("Tuning Options",
+                                  tabPanel("Tuning options",
                                            fluidRow(
-                                             box(title='General Options',width=3,collapsible = F,
-                                                 helpText(   a("Click Here to learn about the Validation techniques",target="_blank",
+                                             box(title='Cross validation',width=3,collapsible = F,
+                                                 helpText(   a("Wikipedia link",target="_blank",
                                                                href="https://en.wikipedia.org/wiki/Cross-validation_%28statistics%29")
                                                  ),
-                                                 selectizeInput('Train.control.method','Validation method for the tunning',
+                                                 helpText(   a("Help for this feature",target="_blank",
+                                                               href="https://www.rdocumentation.org/packages/caret/versions/6.0-71/topics/trainControl")
+                                                 ),
+                                                 selectizeInput('Train.control.method','Validation method for tuning',
                                                                 choices=c('boot', 'repeatedcv', 'LOOCV'),
                                                                 selected='repeatedcv'),
                                                  uiOutput('Train.metric'),
-                                                 numericInput('Train.tunning.CV','Either the number of folds or number of resampling iterations',5),
-                                                 numericInput('Train.tunning.repeat','For repeated k-fold cross-validation only: the number of complete sets of folds to compute',1)
+                                                 numericInput('Train.tunning.CV','Number of folds or resampling iterations',5),
+                                                 numericInput('Train.tunning.repeat','For repeated k-fold cross-validation: number of complete sets of folds',1)
                                                  ),
                                              box(title='Grid',width=9,collapsible = F,
                                                  numericInput('Train.tunning.length','Tuning length',10),
@@ -617,26 +602,26 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                   tabPanel("Prediction table",
                                            dataTableOutput('Train.pred.table')
                                            ),
-                                  tabPanel("Algorythm information",
+                                  tabPanel("Algorithm information",
                                            verbatimTextOutput('Train.model.algo.info')
                                            ),
-                                  tabPanel('Model Summary',
+                                  tabPanel('Model summary',
                                            verbatimTextOutput('Train.validation')
                                            ),
-                                  tabPanel('Tuning Curve',
+                                  tabPanel('Tuning curve',
                                            plotOutput('Train.tunning.plot')
                                            ),
-                                  tabPanel('DPE',
+                                  tabPanel('R console',
                                            tabsetPanel(
-                                             tabPanel("Editor.pred",
+                                             tabPanel("Editor",
                                                       aceEditor("DPEeditorpred","model <- Train.model() \nInd <- Train.Ind()\nDep <- Train.Dep()",mode="r")
                                              ),
-                                             tabPanel("Plot.pred",
+                                             tabPanel("Plot",
                                                       imageOutput("DPE.pred.plot")
                                              ),
-                                             tabPanel("Print.pred",
-                                                      verbatimTextOutput("DPE.pred.print")
-                                             ),
+#                                              tabPanel("Print",
+#                                                       verbatimTextOutput("DPE.pred.print")
+#                                              ),
                                              tabPanel('Template',
                                                       includeMarkdown('Prediction-template.md')
                                                       )
@@ -646,42 +631,39 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                 )
                             )
                             ),
-                   tabPanel("Report Output",
-                            column(2,h4('Data Input'),
-                                   checkboxInput("mono.knitr.file.name", "Print the name of the file", TRUE),
-                                   checkboxInput("monoknitrpicture", "Print the analysis picture(s)", TRUE),
-                                   checkboxInput("mono.knitr.batch.simple", "Print the batch", TRUE),
-                                   checkboxInput("mono.knitr.batch.pred", "Print the batch with the prediction (QC only)", FALSE),
-                                   selectizeInput("mono.knitr.plot.brut","Print the chromatograms before process",choices=c("None","2","all"),selected="None"),
-                                   checkboxInput('mono.knitr.band.comp','Print the band comparison plot',F)
+                   tabPanel("Report output",
+                            column(2,h4('Data input'),
+                                   checkboxInput("mono.knitr.file.name", "Name of file", TRUE),
+                                   checkboxInput("monoknitrpicture", "Chromatograms", TRUE),
+                                   checkboxInput("mono.knitr.batch.simple", "Batch", TRUE),
+                                   checkboxInput("mono.knitr.batch.pred", "Batch with prediction (QC)", FALSE),
+                                   selectizeInput("mono.knitr.plot.brut","Track plot before preprocessing",choices=c("None","2","all"),selected="None")
                                    ),
-                            column(2,h4('Data Preprocessing and Variable Selection'),
-                                   checkboxInput("mono.knitr.preprocess","Print the summary of the preprocess",F),
-                                   selectizeInput("mono.knitr.plot.net","Print the chromatograms after process",choices=c("None","2","all"),selected="None"),
-                                   checkboxInput("mono.knitr.var.select","Print the Variable.selection table",F)
+                            column(2,h4('Data preprocessing and variable selection'),
+                                   checkboxInput("mono.knitr.preprocess","Summary of preprocessing",T),
+                                   selectizeInput("mono.knitr.plot.net","Track plot after preprocessing",choices=c("None","2","all"),selected="None"),
+                                   checkboxInput("mono.knitr.var.select","Variable selection table",T)
                                    ),
-                            column(2,h4('Exploratory Statistics'),
-                                   checkboxInput("mono.knitr.pca.plot", "Print the pca plot", FALSE),
-                                   checkboxInput('mono.knitr.pca.score.loading','Print the plot with score and loadings',F),
-                                   checkboxInput('mono.knitr.pca.score.loading.split','Print the plot with score and loadings splited',F),
-                                   checkboxInput("mono.knitr.cluster.plot", "Print the cluster plot", FALSE),
-                                   checkboxInput("mono.knitr.heatmap.plot", "Print the heatmap plot", FALSE)
+                            column(2,h4('Exploratory statistics'),
+                                   checkboxInput("mono.knitr.pca.plot", "PCA plot", FALSE),
+                                   checkboxInput("mono.knitr.cluster.plot", "Cluster plot", FALSE),
+                                   checkboxInput("mono.knitr.heatmap.plot", "Heatmap plot", FALSE)
                                    ),
-                            column(2,h4('Predictive Statistics'),
-                                   checkboxInput('mono.knitr.prediction.summary.model','Print model summary',F),
-                                   checkboxGroupInput('mono.knitr.prediction.validation','Print the validation results for ',choices=c('Cross-validation data','Training data','Test data'))
+                            column(2,h4('Predictive statistics'),
+                                   checkboxInput('mono.knitr.prediction.summary.model','Model summary',F),
+                                   checkboxGroupInput('mono.knitr.prediction.validation','',choices=c('Cross-validation data','Training data','Test data'))
                                    ),
-                            column(2,h4('Report Download'),
-                                   textInput('mono.knitr.download.text','filename','rTLC-report'),
+                            column(2,h4('Report download'),
+                                   textInput('mono.knitr.download.text','Filename','rTLC-report'),
                                    # downloadButton('mono.knitr.download','Download the report'),
-                                   radioButtons('reportformat', 'Document format', c('PDF', 'HTML', 'Word'),
+                                   radioButtons('reportformat', 'Document format', c('PDF', 'HTML', "MS word"='Word'),
                                                 inline = TRUE),
                                    downloadButton('downloadReport')
                                    ),
-                            column(2,h4("Data Download"),
-                                   checkboxGroupInput("data.download.choice","content",choices = c("batch.PCA","loading.PCA")),
-                                   textInput('data.download.zip.text','filename','rTLC_data_export'),
-                                   downloadButton("data.download.zip",'Save zip file with data inside')
+                            column(2,h4("Data download"),
+                                   checkboxGroupInput("data.download.choice","Content",choices = c("Batch PCA"="batch.PCA","Loading PCA"="loading.PCA")),
+                                   textInput('data.download.zip.text','Filename','rTLC_data_export'),
+                                   downloadButton("data.download.zip",'Zip file')
                                    )
                    ),
 #                    tabPanel('Batch Creator',
@@ -705,24 +687,24 @@ print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
                                 tabPanel('ReadMe',
                                          includeMarkdown("README.md")
                                          ),
-                                tabPanel('R packages and Session Info',
+                                tabPanel('R packages and session info',
                                           verbatimTextOutput('sessionInfo')
                                           ),
                                 tabPanel('License',
                                          includeMarkdown('LICENSE.md')
                                          ),
                                 tabPanel('Contact',
-                                         h5('for information and specific help, contact:'),
+                                         h5('For information and specific help:'),
                                          hr(),
                                          HTML('<a href="mailto:dimitrifichou@gmail.com">Dimitri Fichou</a> '),
                                          hr(),
                                          HTML('<a href="mailto:p.ristivojevic@gmail.com">Petar Ristivojevic</a> '),
                                          hr(),
-                                         p('Dimitri Fichou and Dr Petar Ristivojević contributed to this application.
-                                            Both of them discussed about design, visualisation tools and multivariate analysis.
-                                            Mr Fichou designed all features of the application and Dr Petar Ristivojević contributed by ideas and feed backs.'),
+                                         p('Dimitri Fichou and Dr. Petar Ristivojević contributed to this application.
+                                            Both of them discussed about design, visualization tools and multivariate analysis.
+                                            Mr. Fichou designed all features of the application and Dr. Petar Ristivojević contributed by ideas and feedbacks.'),
                                          hr(''),
-                                         p('This application was supported by Pr. Gertrud Morlock and her team at the Justus Liebig University of Giessen and is generously hosted on the university server.')
+                                         p('This application was supported by Prof. Dr. Gertrud Morlock and her team at the Justus Liebig University Giessen and is generously hosted on the university server.')
                                          ),
                                 tabPanel('Manual',
                                          downloadButton('manual.pdf','Download the pdf manual')
