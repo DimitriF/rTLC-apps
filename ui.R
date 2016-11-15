@@ -410,6 +410,18 @@ shinyUI(navbarPage(title="rTLC V.1.0",
                                                       dataTableOutput("pca.table.1"),
                                                       verbatimTextOutput("pca.summary.1")
                                              ),
+                                             tabPanel("Pair plot (new)",
+                                                      numericInput("PCA.pair","Number of components to consider",3),
+                                                      div(style="display:inline-block",selectizeInput("PCA.pair.upper.continuous","Upper continuous",choices=c('points', 'smooth', 'smooth_loess', 'density', 'cor', 'blank'),selected="density")),
+                                                      # div(style="display:inline-block",selectizeInput("PCA.pair.upper.combo","Upper combo",choices=c('box', 'dot', 'facethist', 'facetdensity', 'denstrip', 'blank'),selected="box")),
+                                                      #div(style="display:inline-block",selectizeInput("PCA.pair.upper.discrete","Upper discrete",choices=c('facetbar', 'ratio', 'blank'),selected="facetbar")),
+                                                      div(style="display:inline-block",selectizeInput("PCA.pair.lower.continuous","Lower continuous",choices=c('points', 'smooth', 'smooth_loess', 'density', 'cor', 'blank'),selected="points")),
+                                                      # div(style="display:inline-block", selectizeInput("PCA.pair.lower.combo","Lower combo",choices=c('box', 'dot', 'facethist', 'facetdensity', 'denstrip', 'blank'),selected='facethist')),
+                                                      #div(style="display:inline-block",selectizeInput("PCA.pair.lower.discrete","Lower discrete",choices=c('facetbar', 'ratio', 'blank'),selected="facetbar")),
+                                                      # div(style="display:inline-block",selectizeInput("PCA.pair.diag.continuous","Diag continuous",choices=c('densityDiag', 'barDiag', 'blankDiag'),selected="densityDiag")), 
+                                                      # div(style="display:inline-block",selectizeInput("PCA.pair.diag.discrete","Diag discrete",choices=c('barDiag', 'blankDiag'),selected="barDiag")),
+                                                      plotOutput("pca.plot.pair",height="800px")
+                                                      ),
                                              tabPanel("PCA 3D",
                                                       uiOutput("PCA_3d")
                                              ),
@@ -442,6 +454,59 @@ shinyUI(navbarPage(title="rTLC V.1.0",
                                          )
                                        )
                               ),
+                              tabPanel("T-sne (new)",
+                                       sidebarLayout(
+                                         sidebarPanel(
+                                           helpText(   a("Wikipedia link",target="_blank",
+                                                         href="https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding")
+                                           ),
+                                           tags$hr(),
+                                           actionButton("tsne.go","Analyse"),
+                                           h4("Variable of interest"),
+                                           uiOutput("select.col.plot.tsne.1"),
+                                           h4("Options"),
+                                           numericInput("tsne.k","the dimension of the resulting embedding.",2),
+                                           numericInput("tsne.initial_dims","The number of dimensions to use in reduction method.",30),
+                                           numericInput("tsne.perplexity","Perplexity parameter. (optimal number of neighbors) ",30),
+                                           numericInput("tsne.max_iter","Maximum number of iterations to perform. ",1000),
+                                           checkboxInput("tsne.whiten","whether the matrix data should be whitened. ",T)
+                                         ),
+                                         mainPanel(
+                                           tabsetPanel(
+                                             tabPanel("2D plot",
+                                                      div(style="display:inline-block",selectizeInput("tsne.pair.upper.continuous","Upper continuous",choices=c('points', 'smooth', 'smooth_loess', 'density', 'cor', 'blank'),selected="density")),
+                                                      div(style="display:inline-block",selectizeInput("tsne.pair.lower.continuous","Lower continuous",choices=c('points', 'smooth', 'smooth_loess', 'density', 'cor', 'blank'),selected="points")),
+                                                      plotOutput("plot.tsne.1",height=800)
+                                             )
+                                           ))
+                                       )
+                                       
+                                       ),
+                              tabPanel("k-means (new)",
+                                      sidebarLayout(
+                                        sidebarPanel(
+                                          helpText(   a("Wikipedia link",target="_blank",
+                                                        href="https://en.wikipedia.org/wiki/K-means_clustering")
+                                          ),
+                                          tags$hr(),
+                                          selectizeInput("kmeans_data","data to use",choices = c("raw data","preprocessed data","data after variable selection")),
+                                          h4("Variable of interest"),
+                                          uiOutput("select.col.plot.kmeans.1"),
+                                          h4("Options"),
+                                          numericInput("kmeans.centers","The number of clusters",3),
+                                          numericInput("kmeans.iter.max","The maximum number of iterations allowed.",10),
+                                          selectizeInput("kmeans.algorithm","Algorithm",choices = c("Hartigan-Wong", "Lloyd", "Forgy", "MacQueen"))
+                                        ),
+                                        mainPanel(
+                                          plotOutput("plot.kmeans.1"),
+                                          uiOutput("select.cluster.kmeans.1"),
+                                          conditionalPanel(condition="input.kmeans_data == 'preprocessed data'",
+                                                           checkboxInput("kmeans.deprocess","depreprocess to see the raster",F)
+                                                           ),
+                                          plotOutput("plot.kmeans.2",height=800)
+                                          )
+                                      )
+                                       ),
                               tabPanel("Cluster",  ####### cluster #######
                                        sidebarLayout(
                                          sidebarPanel(
@@ -455,6 +520,7 @@ shinyUI(navbarPage(title="rTLC V.1.0",
                                            tags$hr(),
                                            h4("Variable of interest"),
                                            uiOutput("select.col.plot.cluster.1"),
+                                           uiOutput("select.col.plot.cluster.2"),
                                            tags$hr(),
                                            selectizeInput("method.dist.cluster.1","Method for distance calculation",
                                                           choices=c("Euclidean" = "euclidean" , "Maximum"="maximum", "Manhattan"="manhattan", "Canberra"="canberra", "Binary"="binary","Minkowski"="minkowski"),select="euclidean"),
@@ -497,42 +563,7 @@ shinyUI(navbarPage(title="rTLC V.1.0",
                                        wellPanel(
                                          tabsetPanel(
                                            tabPanel("Editor",
-                                                    aceEditor("DPEeditor","
-## This is a comment
-## This feature allow you to directly enter R code to perform data analysis
-## Two data are used here:
-## data: the independent variables, store in a matrix
-## each row is an observation
-## each column is a variable (a Retention time)
-## dataX: the batch file
-
-## Uncomment the next line to plot the 1st chromatogram of the red channel
-# plot(data[1,],type='l')
-
-## Uncomment the next line to plot the loading plot of the PCA model for the green channel
-# loadingplot(PCA(data))
-
-## Uncomment the next line to plot the score plot of the PCA model for the gray channel
-# scoreplot(PCA(data))
-
-## Uncomment the next line to plot the code of the kohonen som model for the green channel
-# plot(kohonen::som(data,somgrid(2,2,'hexagonal')),type='codes')
-
-## Map of som kohonen
-# model <- kohonen::som(data,somgrid(2,2,'hexagonal'))
-# plot(model,type='mapping',labels=paste0(dataX$Drug,dataX$id,sep=' ; '))
-
-## Uncomment the next line to plot the hist of the kmeans model for the green channel
-# hist(kmeans(data,center=3,iter.max=1,nstart=1,algorithm='Hartigan-Wong')$cluster)
-
-## Uncomment the next lines to plot the hist of the kmeans model for the green channel
-model <- kmeans(data,center=3,iter.max=1,nstart=1,algorithm='Hartigan-Wong')
-Var.Dep <- 'Drug'
-data <- data.frame(box = model$cluster,Var.Dep=dataX[,Var.Dep])
-print(ggplot(data,aes(x=box,fill=Var.Dep))+geom_bar())
-
-
-",mode="r")
+                                                    aceEditor("DPEeditor","## Take inspiration from the template to produce custom made plot",mode="r")
                                                     ),
                                            tabPanel("Plot",
                                                     numericInput("DPEplot_width", "Plot Width (px)",value = 800),

@@ -936,7 +936,12 @@ pca.plot.1<-reactive({
     if(input$label.plot.pca != "HCA results"){data$Label<-data[,input$label.plot.pca]}else{data$Label<-Cluster.table.1()[,ncol(Cluster.table.1())]}
     plot<-plot+geom_text(data=data,aes(x=PC1,y=PC2,label=Label),hjust=as.numeric(input$hjust.pca),vjust=as.numeric(input$vjust.pca))
   }
-  if(input$pca.ellipse == T){plot <- plot+ stat_ellipse(data=data,aes(x=PC1,y=PC2,col=Color),level=input$pca.ellipse.level)}
+  if(input$pca.ellipse == T){
+    validate(
+      need(input$col.plot.pca != "None","Select a color to plot the ellipses")
+    )
+    plot <- plot+ stat_ellipse(data=data,aes(x=PC1,y=PC2,col=Color),level=input$pca.ellipse.level)
+    }
   
   plot <- plot +theme(axis.text=element_text(size=18),
                       axis.title=element_text(size=18),
@@ -948,6 +953,25 @@ pca.plot.1<-reactive({
 output$pca.plot.1<-renderPlot({
   truc <- pca.plot.1()
   print(truc)
+})
+
+output$pca.plot.pair <- renderPlot({
+  data = scores(model.pca(),npc=input$PCA.pair)
+  colnames(data) = paste0("PC",seq(input$PCA.pair))
+  if(input$col.plot.pca != "None"){
+    data = data.frame(data,col=factor(dataX.mono.pre()[,input$col.plot.pca]))
+    GGally::ggpairs(data,aes(col=col),
+                    upper=list(continuous = input$PCA.pair.upper.continuous, combo = "box", discrete = "facetbar", na = "na"),
+                    lower=list(continuous = input$PCA.pair.lower.continuous, combo = 'facethist', discrete = "facetbar", na = "na"),
+                    diag = list(continuous = "densityDiag", discrete ="barDiag", na = "naDiag")
+                    )
+  }else{
+    GGally::ggpairs(data,
+                    upper=list(continuous = input$PCA.pair.upper.continuous, combo = "box", discrete = "facetbar", na = "na"),
+                    lower=list(continuous = input$PCA.pair.lower.continuous, combo = 'facethist', discrete = "facetbar", na = "na"),
+                    diag = list(continuous = "densityDiag", discrete ="barDiag", na = "naDiag")
+    )
+  }
 })
 
 ############### PCA_3d ############
@@ -980,7 +1004,7 @@ output$pca.table.1<-renderDataTable({
 })
 ## render a selectize input with the name of the columns as choice for the pca
 output$select.col.plot.pca<-renderUI({
-  selectizeInput("col.plot.pca","Color",choices=c("None",colnames(dataX.mono.pre()),"HCA results"),selected="None")
+  selectizeInput("col.plot.pca","Color",choices=c("None",colnames(dataX.mono.pre())),selected="None")
 })
 output$select.shape.plot.pca<-renderUI({
   selectizeInput("shape.plot.pca","Symbol",choices=c("None",colnames(dataX.mono.pre())),selected="None")
@@ -1041,38 +1065,6 @@ output$pca.loading.local.maxima <- renderPrint({
   print(RF[pick.peaks(data, input$pca.loading.local.maxima.span)])
 })
 
-# output$pca.plot.score.loading <- renderPlot({
-#   dataX <- dataX.mono.pre()[,input$col.plot.pca]
-#   par(xpd=T)
-#   par(mfrow=c(4,3),mar=c(5,4,4,6),oma = c(0, 0, 3, 0))
-#   hauteur<-input$hauteur.mono
-#   dist.bas<-input$dist.bas.mono
-#   Zf <- input$Zf.mono
-#   maxi <- (hauteur-dist.bas)/(Zf-dist.bas)
-#   mini <- -dist.bas/(Zf-dist.bas)
-#   color <- c('red','green','blue','gray')
-#   for(i in seq(4)){
-#     data <- data.mono.3()[,,i]
-#     model <- PCA(data)
-#     scoreplot(model,col=factor(dataX),main=paste0(color[i],' channel'))
-#     legend("topright", inset=c(-0.5,0),legend=unique(factor(dataX)),pch=1,col=unique(factor(dataX)))
-#     data <- loadings.PCA(model)[,1]
-#     RF = seq(maxi,mini,length.out=length(data))
-#     plot(x=RF, xaxt = "n",
-#          y=as.matrix(data),type="l",main=paste0("Loading plot: PC1: ",round(model$var[1]/model$totalvar*100,1),'%'),xlab=expression(italic(R)['F']),ylab="intensity")
-#     axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
-#     data <- loadings.PCA(model)[,2]
-#     RF = seq(maxi,mini,length.out=length(data))
-#     plot(x=RF, xaxt = "n",
-#          y=as.matrix(data),type="l",main=paste0("Loading plot: PC2: ",round(model$var[2]/model$totalvar*100,1),'%'),xlab=expression(italic(R)['F']),ylab="intensity")
-#     axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
-#   }
-#   mtext(input$pca.plot.score.loading.title, outer = TRUE, cex = 1.5)
-# })
-# output$pca.plot.score.loading.title <- renderUI({
-#   textInput('pca.plot.score.loading.title','Title of the plot',paste0('Preprocess: \n',paste0(input$Preprocess.order,collapse='; ')))
-# })
-
 
 ################# Outliers PCA #################
 Moutlier.pca.1<-reactive({
@@ -1115,17 +1107,34 @@ data.cluster.1<-reactive({
 })
 plot.cluster.1.1 <- reactive({
   data<-data.cluster.1()
-  if(length(input$Var.cluster.1) == 0){rownames(data)<-dataX.mono.pre()[,"ID"]}
-  if(length(input$Var.cluster.1) == 1){rownames(data)<-dataX.mono.pre()[,input$Var.cluster.1]}
-  if(length(input$Var.cluster.1) > 1){rownames(data)<-apply(dataX.mono.pre()[,input$Var.cluster.1],1,paste0,collapse=" - ")}
+  rownames(data) = seq(nrow(dataX.mono.pre()))
+  if(length(input$Var.cluster.1) == 0){lab<-rep("",nrow(dataX.mono.pre()))}
+  if(length(input$Var.cluster.1) == 1){lab<-dataX.mono.pre()[,input$Var.cluster.1]}
+  if(length(input$Var.cluster.1) > 1){lab<-apply(dataX.mono.pre()[,input$Var.cluster.1],1,paste0,collapse=" - ")}
+  if(input$Var.cluster.2 == "None"){col = rep(1,nrow(dataX.mono.pre()))}else{col = as.numeric(as.factor(dataX.mono.pre()[,input$Var.cluster.2])) +1}
+  
+  # function to color a leaf of the tree
+  colLab <- function(n) {
+    if(is.leaf(n)) {
+      a <- attributes(n)
+      labcolor <- col[as.numeric(a$label)]
+      attr(n, "nodePar") <- c(a$nodePar, list(lab.col = labcolor, cex=1, col=labcolor, pch=16 ))
+      attr(n,"label") = lab[as.numeric(a$label)]
+    }
+    n
+  }
+  
   d <- dist(data, method = input$method.dist.cluster.1) # distance matrix
   fit <- hclust(d, method=input$method.clust.cluster.1)
-#   label.color <- paste(input$col.cluster.1,collapse=', ')
-#   label.color <- gsub(1,'red',gsub(2,'green',gsub(3,'blue',gsub(4,'gray',label.color))))
-  plot(fit,main="Cluster dentogram",xlab="",ylab="Distance",sub=""
-       ) # display dendogram
-  groups <- cutree(fit, k=input$cluster.nbr.1)
-  rect.hclust(fit, k=input$cluster.nbr.1, border="red")
+  fit = as.dendrogram(fit)
+  fit = dendrapply(fit,colLab)
+  plot(fit,main="Cluster dentogram",xlab="",ylab="Distance",sub="") # display dendogram
+  dendextend::rect.dendrogram(fit, k=input$cluster.nbr.1, border="red") # cut the tree
+  
+  if(input$Var.cluster.2 != "None"){
+    truc = unique(dataX.mono.pre()[,input$Var.cluster.2])
+    legend("topright",pch=16,col=seq(length(truc))+1,legend=truc,cex=2,pt.cex=3)
+  }
 })
 output$plot.cluster.1.1<-renderPlot({
   plot.cluster.1.1()
@@ -1146,6 +1155,9 @@ output$Cluster.table.1<-renderDataTable({
 output$select.col.plot.cluster.1<-renderUI({
   checkboxGroupInput("Var.cluster.1","X-labelling of cluster plot",choices=colnames(dataX.mono.pre()),selected=colnames(dataX.mono.pre())[1])
 })
+output$select.col.plot.cluster.2<-renderUI({
+  radioButtons("Var.cluster.2","Color of cluster plot",choices=c("None",colnames(dataX.mono.pre())),selected="None")
+})
 
 ################# output$heatmap #################
 data.heatmap<-reactive({
@@ -1164,6 +1176,110 @@ output$plot.heatmap.2 <- renderD3heatmap({
   data<-data.heatmap()
   if(input$Var.heatmap.1 != "ID"){rownames(data)<-paste(dataX.mono.pre()[,input$Var.heatmap.1],dataX.mono.pre()[,"ID"],sep=" , ")}
   d3heatmap(data[,rev(seq(dim(data)[2]))],Colv=NA)
+})
+
+################# output$kmeans #################
+data.kmeans<-reactive({
+  if(input$kmeans_data == "data after variable selection"){
+    data <- data.mono.4()
+  }
+  if(input$kmeans_data == "preprocessed data"){
+    data <- t(apply(data.mono.3(), 1, c))
+  }
+  if(input$kmeans_data == "raw data"){
+    data <- t(apply(data.mono.2(), 1, c))
+  }
+  return(data)
+})
+kmeans.model = reactive({
+  set.seed(1)
+  kmeans(data.kmeans(),centers = input$kmeans.centers,iter.max = input$kmeans.iter.max,algorithm = input$kmeans.algorithm)
+})
+output$plot.kmeans.1 <- renderPlot({
+  data <- data.frame(cluster = kmeans.model()$cluster,Col=factor(dataX.mono.pre()[,input$Var.kmeans.1]))
+  print(ggplot(data,aes(x=cluster,fill=Col))+geom_bar())
+})
+output$select.col.plot.kmeans.1<-renderUI({
+  radioButtons("Var.kmeans.1","Y-labelling of heatmap plot",choices=colnames(dataX.mono.pre())[2:length(colnames(dataX.mono.pre()))])
+})
+output$select.cluster.kmeans.1<-renderUI({
+  selectizeInput("cluster.kmeans.1","Cluster to extract",choices=seq(input$kmeans.centers),multiple=T,selected=seq(input$kmeans.centers))
+})
+output$plot.kmeans.2 <- renderPlot({
+  data <- kmeans.model()$centers
+  if(input$kmeans_data == "preprocessed data"){
+    data = aaply(data, 1, function(x) {
+      dim(x) <- c(dim(data.mono.3())[2], dim(data.mono.3())[3])
+      return(x)
+    }, .expand = T)
+  }
+  if(input$kmeans_data == "raw data"){
+    data = aaply(data, 1, function(x) {
+      dim(x) <- c(dim(data.mono.2())[2], dim(data.mono.3())[3])
+      return(x)
+    }, .expand = T)
+  }
+  
+  par(mfrow=c(length(input$cluster.kmeans.1),1))
+  if(input$kmeans_data == "data after variable selection"){
+    for(i in input$cluster.kmeans.1){
+      if(sum(selection.table()[,1]) == 1){
+        maxi <- selection.table()[selection.table()[,1]==T,4]
+        mini <- selection.table()[selection.table()[,1]==T,3]
+      }else{
+        validate(
+          need(sum(selection.table()[,1]) == 1,"no reconstruction for complex variable selection")
+        )
+      }
+      data2 <- data[as.numeric(i),]
+      RF = seq(maxi,mini,length.out=length(data2))
+      plot(x=RF, xaxt = "n",
+           y=data2,type="l",main=paste0("Cluster ",i),xlab=expression(italic(R)['F']),ylab="intensity (AU)")
+      axis(side = 1, at = round(seq(maxi,mini,length.out=(maxi-mini)*10),2))
+    }
+  }
+  if(input$kmeans_data == "preprocessed data"){
+    if(input$kmeans.deprocess){
+      for (i in seq(dim(data)[3])) {
+        data[, , i] <- data[, , i] - min(data[, , i])
+        data[, , i] <- data[, , i]/max(data[, , i])
+      }
+    }
+    for(i in input$cluster.kmeans.1){
+      f.plot.array(data,id=i,label=paste0("Cluster ",seq(input$kmeans.centers)),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct = input$kmeans.deprocess)
+    }
+  }
+  if(input$kmeans_data == "raw data"){
+    for(i in input$cluster.kmeans.1){
+      f.plot.array(data,id=i,label=paste0("Cluster ",seq(input$kmeans.centers)),input$hauteur.mono,input$Zf.mono,input$dist.bas.mono,reconstruct = T)
+    }
+  }
+})
+################# output$tsne #################
+data.heatmap<-reactive({
+  data <- data.mono.4()
+  return(data)
+})
+
+tsne.model = eventReactive(input$tsne.go,{
+  validate(
+    need("tsne" %in% installed.packages(),"tsne package not installed, use install.package('tsne') to install it.")
+  )
+  withProgress(message = "Work in Progress", value=0, {
+    tsne::tsne(data.mono.4(),k = input$tsne.k,initial_dims = input$tsne.initial_dims,perplexity = input$tsne.perplexity,
+              whiten = input$tsne.whiten,max_iter = input$tsne.max_iter)
+  })
+  
+})
+output$plot.tsne.1 <- renderPlot({
+  GGally::ggpairs(data.frame(tsne.model(),col=factor(dataX.mono.pre()[,input$Var.tsne.1])),aes(col=col),
+                  upper=list(continuous = input$tsne.pair.upper.continuous, combo = "box", discrete = "facetbar", na = "na"),
+                  lower=list(continuous = input$tsne.pair.lower.continuous, combo = 'facethist', discrete = "facetbar", na = "na"),
+                  diag = list(continuous = "densityDiag", discrete ="barDiag", na = "naDiag")
+  )
+})
+output$select.col.plot.tsne.1<-renderUI({
+  radioButtons("Var.tsne.1","Y-labelling of tsne plot",choices=colnames(dataX.mono.pre())[2:length(colnames(dataX.mono.pre()))])
 })
 
 ################# output$DPE.plot #################
@@ -1239,13 +1355,17 @@ output$Train.metric <- renderUI({
   }
   selectizeInput('Train.metric','Performance metric',choices=truc)
 })
-output$Train.model.algo <- renderUI({
-  caret.table <- cbind(
+Train.model.algo.tot <- reactive({
+  cbind(
     llply(getModelInfo(),function(l){l$label}),
     llply(getModelInfo(),function(l){l$library}),
     llply(getModelInfo(),function(l){l$prob}),
     llply(getModelInfo(),function(l){l$type})
   )
+})
+output$Train.model.algo <- renderUI({
+  caret.table <- Train.model.algo.tot()
+  # caret.table = caret.table[caret.table[,2] %in% row.names(installed.packages()),]
   Train.model.algo.choice <- names(caret.table[,1])
   names(Train.model.algo.choice) <- caret.table[,1]
   if(!input$Train.model.algo.all){Train.model.algo.choice <- Train.model.algo.choice[names(caret.table[,1]) %in% c('rf','pls','lda','svmLinear2','svmPoly','rpart','pcr')]}
@@ -1253,32 +1373,43 @@ output$Train.model.algo <- renderUI({
 })
 
 Train.model.grid.pre <- reactive({
+  validate(
+    need(Train.model.algo.tot()[input$Train.model.algo,2] %in% row.names(installed.packages()),"The package for this algorithm is not installed.")
+  )
   grid <- getModelInfo(model = input$Train.model.algo)[[input$Train.model.algo]]$grid
   grid(Train.Ind(),Train.Dep(),len=input$Train.tunning.length)
 })
 output$Train.model.grid.edit <- renderTable({
   data <- Train.model.grid.pre()
-  largeur <- ncol(data)
-  longueur <- nrow(data)
-  store <- matrix(rep(NA,largeur*longueur),ncol=largeur,nrow=longueur)
-  for(i in seq(largeur)){
-    store[,i] <- paste0("<input id='Train.model.grid.",i,'.', 1:longueur, "' class='shiny-bound-input' type='text' value='",data[,i],"'>")
+  if(!input$Train.model.algo.all){
+    largeur <- ncol(data)
+    longueur <- nrow(data)
+    store <- matrix(rep(NA,largeur*longueur),ncol=largeur,nrow=longueur)
+    for(i in seq(largeur)){
+      store[,i] <- paste0("<input id='Train.model.grid.",i,'.', 1:longueur, "' class='shiny-bound-input' type='text' value='",data[,i],"'>")
+    }
+    colnames(store) <- colnames(data)
+    data = store
   }
-  colnames(store) <- colnames(data)
-  return(store)
+  return(data)
 }, sanitize.text.function = function(y) y)
+
 Train.model.grid.edit <- reactive({
-  para <- getModelInfo(model = input$Train.model.algo)[[input$Train.model.algo]]$parameters$class
-  data <- Train.model.grid.pre()
-  largeur <- ncol(data)
-  longueur <- nrow(data)
-  store <- matrix(rep(NA,largeur*longueur),ncol=largeur,nrow=longueur)
-  for(i in seq(largeur)){
-    truc <- c();for(j in seq(longueur)){truc <- c(truc,input[[paste0("Train.model.grid.",i,".",j)]])}
-    store[,i] <- as.numeric(truc)
+  if(!input$Train.model.algo.all){
+    para <- getModelInfo(model = input$Train.model.algo)[[input$Train.model.algo]]$parameters$class
+    data <- Train.model.grid.pre()
+    largeur <- ncol(data)
+    longueur <- nrow(data)
+    store <- matrix(rep(NA,largeur*longueur),ncol=largeur,nrow=longueur)
+    for(i in seq(largeur)){
+      truc <- c();for(j in seq(longueur)){truc <- c(truc,input[[paste0("Train.model.grid.",i,".",j)]])}
+      store[,i] <- as.numeric(truc)
+    }
+    store <- as.data.frame(store)
+    colnames(store) <- colnames(data)
+  }else{
+    store = Train.model.grid.pre()
   }
-  store <- as.data.frame(store)
-  colnames(store) <- colnames(data)
   return(store)
 })
 

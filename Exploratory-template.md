@@ -7,7 +7,7 @@ Use it to produce publications ready figures, they still need to be rescaled wit
 ## Line plot comparison
 Works with the propolis dataset.
 
-Need a pixel dimension of 1063*1063. Single column figure for Elsevier.
+Need a pixel dimension of 100*1000. Single column figure for ACS.
 
 ```r
 hauteur<-input$hauteur.mono
@@ -56,7 +56,7 @@ mtext("C", side = 3, line = 1, outer = FALSE, at = c(-0.6),
 ## PCA scatterplot
 Works with the propolis dataset
 
-Need a pixel dimension of 2244 * 1000. Double column figure for Elsevier.
+Need a pixel dimension of 2100 * 1000. Double column figure for ACS.
 ```r
 library(grid)
 library(gridExtra) 
@@ -101,7 +101,7 @@ grid.arrange(plot_blue, plot_gray, ncol = 2)
 ## PCA loadingplot
 Works with the propolis dataset
 
-Need a pixel dimension of 2244 * 1000. Double column figure for Elsevier.
+Need a pixel dimension of 2100 * 1000. Double column figure for ACS.
 ```r
 par(mfcol=c(2,2),cex=1.5,lwd=2,cex.lab=1.5,cex.main=1.5,mgp=c(2,0.5,0))
 
@@ -150,28 +150,51 @@ abline(v = RF[pick.peaks(-data, 15)], col = "red")
 
 Works with the propolis dataset
 
-Need a pixel dimension of 2244 * 1063. Double column figure for Elsevier.
+Need a pixel dimension of 1000 * 1000. Single column for ACS.
 ```r
-par(mfrow=c(1,2),cex.lab=2,cex.axis=2,cex.main=3,mar=c(1,5,5,0.2)) ## define graphics options
+par(mfrow=c(2,1),cex.lab=2,cex.axis=2,cex.main=3,mar=c(1,5,5,0.2)) ## define graphics options
+batch = dataX.mono.pre()
+# function to color a leaf of the tree
+colLab <- function(n) {
+  if(is.leaf(n)) {
+    a <- attributes(n)
+    labcolor <- as.numeric(as.factor(batch[,"Class bis"])[as.numeric(a$label)]) +1
+    attr(n, "nodePar") <- c(a$nodePar, list(lab.col = labcolor, cex=1, col=labcolor, pch=16 ))
+    attr(n,"label") =batch[as.numeric(a$label),"Class bis"]
+  }
+  n
+}
 
 Rf <- round(seq(RF.max(),RF.min(),length.out=dim(data.mono.3())[2]),3) ## extract the Rf to be able to subset the dataset
 data<-data.mono.3()[,Rf >= 0 & Rf <= 1,3] ## do the variable selection, only Rf between 0 and 1, and only the third element of the dimension 3 of the preprocessed array, i.e. blue channel
-rownames(data)<-dataX.mono.pre()[,"Class.2"] ## define the row names of the dataset
+rownames(data)<-batch[,"ID"] ## define the row names of the dataset
 d <- dist(data, method = "euclidean") # distance matrix
 fit <- hclust(d, method="ward") ## fit the cluster
+d = round( fit$height[order(fit$height,decreasing = T)][3:7])
+fit = as.dendrogram(fit)
+fit = dendrapply(fit,colLab)
 plot(fit,xlab="",sub="",main="Blue channel",lwd=1.5,ylab="Distance") # display dendogram
-rect.hclust(fit, k=3, border="red") ## define the cluster separations
+dendextend::rect.dendrogram(fit, k=3, border="red") ## define the cluster separations
 mtext("A", side = 3, line = 1, outer = F, at = c(-8),
       adj = NA, padj = 0, cex = 5, col =NA, font = NA)
+legend("topright",pch=16,col=2:3,legend=c("B","O"),cex=2,pt.cex=3)
+text(x=26,y=d[1], d[1],pos=1,cex=1.7)
+text(x=76.5,y=d[4], d[4],pos=1,cex=1.7)
+text(x=97.5,y=d[3], d[3],pos=1,cex=1.7)
 
 Rf <- round(seq(RF.max(),RF.min(),length.out=dim(data.mono.3())[2]),3)
 data<-data.mono.3()[,Rf >= 0 & Rf <= 1,4]
-rownames(data)<-dataX.mono.pre()[,"Class.2"]
+rownames(data)<-dataX.mono.pre()[,"ID"]
 d <- dist(data, method = "euclidean") # distance matrix
 fit <- hclust(d, method="ward")
+d = round( fit$height[order(fit$height,decreasing = T)][2:3])
+fit = as.dendrogram(fit)
+fit = dendrapply(fit,colLab)
 plot(fit,xlab="",sub="",main="Grayscale",lwd=1.5,ylab="Distance") # display dendogram
-rect.hclust(fit, k=2, border="red")
+dendextend::rect.dendrogram(fit, k=2, border="red")
 mtext("B", side = 3, line = 1, outer = F, at = c(-8),
       adj = NA, padj = 0, cex = 5, col =NA, font = NA)
+text(x=11.5,y=d[2], d[2],pos=1,cex=1.7)
+text(x=61,y=d[1], d[1],pos=1,cex=1.7)
 
 ```

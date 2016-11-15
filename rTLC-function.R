@@ -17,35 +17,10 @@
 #51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #### rTLC ######
-f.area<-function(data,start,stop){
-  return(abs(sum(data[start:stop])))
-}
-f.height<-function(data,start,stop){
-  return(abs(max(data[start:stop])))
-}
 f.read.image<-function(source,native,format,height=0){
-#   gamma=PicturePreprocess[1];medianfilter=PicturePreprocess[2];lowpass=PicturePreprocess[3];highpass=PicturePreprocess[4]
   if(format == "tiff"){data<-readTIFF(source,native=native)}
   if(format == "jpeg"){data<-readJPEG(source=source,native=native)}
   if(format == "png"){data<-readPNG(source=source,native=native)}
-#   if(format == 'bmp'){data<-read.bmp(source)}
-#   if(format == 'EBIimage'){data<-readImage(source,type=format)@.Data;data<-aperm(data,c(2,1,3))}
-#   data<-readImage(source,type=format)
-#   if(gamma!=1){data <- data ^ gamma}
-#   if(medianfilter!=1){data <- medianFilter(data,medianfilter)}
-#   if(lowpass==T){
-#     fLow <- makeBrush(21, shape= 'disc', step=FALSE)^2
-#     fLow <- fLow/sum(fLow)
-#     data <- filter2(data, fLow)
-#     }
-#   if(highpass==T){
-#     fHigh <- matrix(1, nc = 3, nr = 3)
-#     fHigh[2, 2] <- -8
-#     data <- filter2(data, fHigh)
-#     }
-#   data <- normalize(data)
-#   data <- data@.Data
-#   data<-aperm(data,c(2,1,3))
   if(height != 0){
     data.1 <- redim(data[,,1],height,dim(data)[2])
     data.2 <- redim(data[,,2],height,dim(data)[2])
@@ -55,59 +30,6 @@ f.read.image<-function(source,native,format,height=0){
   return(data)
 }
 
-f.plot.and.calib<-function(dataX,data,column.mono=input$column.mono,
-                           signal.type=input$monovariate.signal.type,model.type=input$monovariate.model.type,
-                           hauteur=input$hauteur.mono,dist.bas=input$dist.bas.mono,Zf=input$Zf.mono,z.min=input$z.min,z.max=input$z.max,
-                           type.return="table"){
-  pix.min<-z.min
-  pix.max<-z.max
-  area<-apply(data,1,f.area,start=pix.min,stop=pix.max)
-  height<-apply(data,1,f.height,start=pix.min,stop=pix.max)
-  data.1<-cbind(dataX,area,height)
-  colnames(data.1)[colnames(data.1)==column.mono] <- "masse"
-  if(signal.type=="area"){
-    if(model.type=="linear"){
-      fit<-lm(masse~area,data=data.1,Use==T)
-    }else{fit<-lm(masse~area+I(area^2)+0,data=data.1,Use==T)}
-  }
-  if(signal.type=="height"){
-    if(model.type=="linear"){
-      fit<-lm(masse~height,data=data.1,Use==T)
-    }else{fit<-lm(masse~height+I(height^2)+0,data=data.1,Use==T)}
-  }
-  masse.pred<-predict(fit,newdata=data.1)
-  data<-cbind(data.1,masse.pred)
-  data$teneur<-data$masse.pred/data[,9]*100
-  if(type.return=="table"){return(data)}
-  if(type.return=="model"){return(fit)}
-  data.plot.cal<-data[data$Use==T,]
-  data.plot.unknow<-data[data$Use!=T,]
-  if(signal.type=="area"){plot<-ggplot()+
-                            geom_text(data=data.plot.cal,aes(y=masse,x=area,label=id),colour="red")+
-                            geom_point(data=data.plot.cal,aes(y=masse,x=area),shape=21,size=9,colour="red")
-                          if(model.type=="linear"){
-                            plot<-plot+stat_smooth(data=data.plot.cal,aes(y=masse,x=area),method=lm,se=F,formula= y~x,colour="red")
-                          }else{
-                            plot<-plot+stat_smooth(data=data.plot.cal,aes(y=masse,x=area),method=lm,se=F,formula= y~x +I(x^2)+0,colour="red")
-                          }
-                          plot<-plot+geom_text(data=data.plot.unknow,aes(y=masse.pred,x=area,label=id),colour="blue")+
-                            geom_point(data=data.plot.unknow,aes(y=masse.pred,x=area),shape=21,size=9,colour="blue")+
-                            coord_flip()
-  }
-  if(signal.type=="height"){plot<-ggplot()+
-                              geom_text(data=data.plot.cal,aes(y=masse,x=height,label=id),colour="red")+
-                              geom_point(data=data.plot.cal,aes(y=masse,x=height),shape=21,size=9,colour="red")
-                            if(model.type=="linear"){
-                              plot<-plot+stat_smooth(data=data.plot.cal,aes(y=masse,x=height),method=lm,se=F,formula= y~x,colour="red")
-                            }else{
-                              plot<-plot+stat_smooth(data=data.plot.cal,aes(y=masse,x=height),method=lm,se=F,formula= y~x +I(x^2)+0,colour="red")
-                            }
-                            plot<-plot+geom_text(data=data.plot.unknow,aes(y=masse.pred,x=height,label=id),colour="blue")+
-                              geom_point(data=data.plot.unknow,aes(y=masse.pred,x=height),shape=21,size=9,colour="blue")+
-                              coord_flip()
-  }
-  plot
-}
 
 redim = function(im, w.out, h.out) {
   w.in = nrow(im)
@@ -256,3 +178,5 @@ f.rebind <- function(data,channel,hauteur=10,dist.bas=1,Zf=7){
   colnames(data) <- new.rf
   return(data)
 }
+
+
