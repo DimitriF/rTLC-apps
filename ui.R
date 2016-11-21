@@ -1,7 +1,7 @@
 #### License ####
 #Copyright (C) {2014}  {Fichou Dimitri}
 #{dimitrifichou@laposte.net}
-
+ 
 #This program is free software; you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
 #the Free Software Foundation; either version 2 of the License, or
@@ -141,9 +141,9 @@ shinyUI(navbarPage(title="rTLC V.1.0",
                    tabPanel("Data preprocessing",
                             sidebarLayout(
                               sidebarPanel(
-                                sliderInput('Train.partition','Proportion of training data (needed for predictive statistics)',min=0,max=1,value = 0.75),
+                                sliderInput('Train.partition','Proportion of training data (needed for predictive statistics). A value of 0.75 means that 75% of the samples will be in the training set and 25% in the test set.',min=0,max=1,value = 0.75),
                                  tags$hr(),
-                                selectizeInput('Preprocess.order','Selcetion of preprocessing algorithms (order is important)',
+                                selectizeInput('Preprocess.order','Selection of preprocessing algorithms (order is important)',
                                                choices=c("Median filter" = 'medianFilter',"Gamma correction" = 'gammaCorrection','Smoothing' = 'Smoothing',
                                                          'Baseline correction' = 'Baseline.correction','Warping' = 'Warping','Standard normal variate' ='Standard.Normal.Variate',
                                                          'Mean centering' = 'Mean.centering','Autoscaling' = 'Autoscaling'),

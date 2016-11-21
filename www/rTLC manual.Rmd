@@ -50,7 +50,7 @@ A picture should appear on the page , as well as a _Plate choice_ menu and a tab
 
 #### Horizontal dimensions 
 
-A chromatogram will be extracted between each pair of red and green vertical lines on the central image by taking the horizontal mean of pixels on each of the red, green and blue channels of the chromatogram. 
+A chromatogram will be extracted between each pair of red and green vertical lines on the central image by taking the horizontal mean of pixels on each of the red, green and blue channels of the chromatogram. The gray scale is then calculated from the 3 channels at each Rf and for each track.
 
 The number in the _Horizontal dimension_ table must be modified in order to match each band of the chromatogram between a pair of red and green lines. 
 

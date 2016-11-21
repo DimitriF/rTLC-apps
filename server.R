@@ -679,14 +679,6 @@ Train.partition <- reactive({
   })
 
   data.mono.3<-reactive({
-    if(input$filedemouse == 'YourOwnData'){
-        assign("data",list(chrom = data.mono.2(),
-                           batch = dataX.mono.pre(),
-                           Vertical.dim = c(dim(data.mono.2())[2],input$hauteur.mono,input$Zf.mono,input$dist.bas.mono),
-                           Horizontale.dim = TableDimension()
-        ))
-        save(list="data", file=paste0("data/",format(Sys.time(), "%Y%b%d_%H_%M_%S"),".Rdata"))
-    }
     if(input$filedemouse != 'QC'){
       validate(
         need(input$window.size %% 2 == 1, "The window size must be an odd value"),
