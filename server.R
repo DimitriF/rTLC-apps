@@ -70,6 +70,12 @@ shinyServer(function(input, output,session) {
       file.copy('www/rTLC_manual.pdf', file)
     }
   )
+  output$leiden.zip <- downloadHandler(
+    filename = "Leiden_rtlc_workshop.zip",
+    content = function(file) {
+      file.copy('www/Leiden_rtlc_workshop.zip', file)
+    }
+  )
   output$help.global.pipeline <- renderImage({
     filename <- normalizePath(file.path('./www','Pipeline-total.jpg'))
 

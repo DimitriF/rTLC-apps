@@ -735,7 +735,7 @@ shinyUI(navbarPage(title="rTLC V.1.0",
                                             Both of them discussed about design, visualization tools and multivariate analysis.
                                             Mr. Fichou designed all features of the application and Dr. Petar Ristivojević contributed by ideas and feedbacks.'),
                                          hr(''),
-                                         p('This application was supported by Prof. Dr. Gertrud Morlock and her team at the Justus Liebig University Giessen and is generously hosted on the university server.')
+                                         p('This application development was supported and suppervised by Prof. Dr. Gertrud Morlock and her team at the Justus Liebig University Giessen and is generously hosted on the university server.')
                                          ),
                                 tabPanel('Manual',
                                          downloadButton('manual.pdf','Download the pdf manual')
@@ -745,7 +745,10 @@ shinyUI(navbarPage(title="rTLC V.1.0",
                                          ),
                                 tabPanel('Prediction Pipeline',
                                          imageOutput('help.predict.pipeline')
-                                         )
+                                         ),
+                                tabPanel('Leiden workshop',
+                                         downloadButton('leiden.zip','Download a zip file with datasets')
+                                )
                               )
                             )
                             )
