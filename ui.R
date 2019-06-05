@@ -18,18 +18,17 @@
 #### rTLC ######
 
 
-require("jpeg");require("png");require('caret');require('klaR');require('xlsx');
+require("jpeg");require("png");require('caret');require('klaR')
 require("ChemometricsWithR");require("gplots");require("kohonen");require("devtools");
-require("chemometrics");require("ggplot2");require("abind");require("plyr");require('dplyr');
 require("prospectr");require("DiscriMiner");require("baseline");require("knitr");
 require("xtable");require("ptw");require("dtw");
 require('randomForest');require('kernlab');require('ipred');
 require('extraTrees');require('evtree')
-require("threejs")
+# require("threejs")
 
 # require('shinyRGL');require('rgl')
 
-require('shinyAce');require('shinydashboard');require('d3heatmap');
+require('shinydashboard');require('d3heatmap');
 
 
 
@@ -422,9 +421,9 @@ shinyUI(navbarPage(title="rTLC V.1.0",
                                                       # div(style="display:inline-block",selectizeInput("PCA.pair.diag.discrete","Diag discrete",choices=c('barDiag', 'blankDiag'),selected="barDiag")),
                                                       plotOutput("pca.plot.pair",height="800px")
                                                       ),
-                                             tabPanel("PCA 3D",
-                                                      uiOutput("PCA_3d")
-                                             ),
+                                             # tabPanel("PCA 3D",
+                                             #          uiOutput("PCA_3d")
+                                             # ),
                                              tabPanel("Loading Plot",
                                                       radioButtons('pca.loading.choice','Component',choices=seq(10),selected=1),
                                                       plotOutput("pca.loading"),
@@ -558,27 +557,7 @@ shinyUI(navbarPage(title="rTLC V.1.0",
                                              )
                                            ))
                                        )
-                              ),
-                              tabPanel("R console",
-                                       wellPanel(
-                                         tabsetPanel(
-                                           tabPanel("Editor",
-                                                    aceEditor("DPEeditor","## Take inspiration from the template to produce custom made plot",mode="r")
-                                                    ),
-                                           tabPanel("Plot",
-                                                    numericInput("DPEplot_width", "Plot Width (px)",value = 800),
-                                                    numericInput("DPEplot_height", "Plot Height (px)", value = 800),
-                                                    imageOutput("DPEplot")
-                                           ),
-#                                            tabPanel("Print",
-#                                                     verbatimTextOutput("DPEprint")
-#                                            ),
-                                           tabPanel('Template',
-                                                    includeMarkdown('Exploratory-template.md')
-                                           )
-                                                    )
-                                         )
-                                       )
+                              )
                                        ),
                    tabPanel("Predictive statistics",
                             sidebarLayout(
@@ -641,23 +620,7 @@ shinyUI(navbarPage(title="rTLC V.1.0",
                                            ),
                                   tabPanel('Tuning curve',
                                            plotOutput('Train.tunning.plot')
-                                           ),
-                                  tabPanel('R console',
-                                           tabsetPanel(
-                                             tabPanel("Editor",
-                                                      aceEditor("DPEeditorpred","model <- Train.model() \nInd <- Train.Ind()\nDep <- Train.Dep()",mode="r")
-                                             ),
-                                             tabPanel("Plot",
-                                                      imageOutput("DPE.pred.plot")
-                                             ),
-#                                              tabPanel("Print",
-#                                                       verbatimTextOutput("DPE.pred.print")
-#                                              ),
-                                             tabPanel('Template',
-                                                      includeMarkdown('Prediction-template.md')
-                                                      )
                                            )
-                                  )
                                   )
                                 )
                             )

@@ -20,7 +20,7 @@
 
 
 require("jpeg");require("png");require('tiff');
-require('caret');require('klaR');require('xlsx');
+require('caret');require('klaR');require('readxl');
 require("ChemometricsWithR");require("gplots");require("kohonen");
 require("devtools");require("chemometrics");require("ggplot2");
 require("abind");require("plyr");require('dplyr');
@@ -29,7 +29,8 @@ require("knitr");require('rmarkdown');require("xtable");
 require("ptw");require("dtw");require('d3heatmap');
 require('randomForest');require('kernlab');require('ipred');
 require('extraTrees');require('evtree');require('FBN')
-require("threejs");require('shinyAce');require('shinydashboard');
+# require("threejs");
+require('shinydashboard');
 
 
 options(shiny.maxRequestSize=1000*1024^2)
@@ -229,7 +230,7 @@ shinyServer(function(input, output,session) {
         data <- data.mono.1.1()
         data <- data.frame(ID = seq(dim(data)[1]),class = rep('unknow',dim(data)[1]),ref = rep('unknow',dim(data)[1]),info=rep('unknow',dim(data)[1]))
       }else{
-        data <- read.xlsx(as.character(inFile[1,4]),sheetIndex=1)
+        data <- as.data.frame(read_excel(as.character(inFile[1,4]),sheet=1))
       }
       if(colnames(data)[1] != 'ID' & 'ID' %in% colnames(data)){
         colnames(data)[which(colnames(data) == 'ID')] <- 'ID2'
@@ -357,14 +358,14 @@ shinyServer(function(input, output,session) {
     }
     inFile <- input$TableDimensionUpload
     if(!is.null(inFile)){
-      data.saved <- read.xlsx(as.character(inFile[1,4]),sheetIndex=1)
+      data.saved <- read.csv(as.character(inFile[1,4]))
       validate(
         need(nrow(data.saved) == truc, "There is not the same number of row in your saved data than the number of pictures")
       )
       data <- data.saved
     }
     if(input$filedemouse == 'demoPropolis'){
-      data <- read.xlsx("www/rTLC_propolis_dimension.xlsx",sheetIndex=1)
+      data <- as.data.frame(read_excel("www/rTLC_propolis_dimension.xlsx",sheet=1))
       for(i in c(1:ncol(data))){
         data[,i] <- paste0("<input id='",colnames(data)[i],'.', 1:nrow(data),"' class='shiny-bound-input' type='number'  readonly='readonly'  value='",data[,i],"'>")
       }
@@ -378,9 +379,9 @@ shinyServer(function(input, output,session) {
   }, sanitize.text.function = function(y) y,rownames = T)
 
   output$TableDimensionSave <- downloadHandler(
-    filename = function(x){paste0(input$TableDimensionSave.text,'.xlsx')},
+    filename = function(x){paste0(input$TableDimensionSave.text,'.csv')},
     content = function(file) {
-      write.xlsx(TableDimension(),file=file,row.names = F)
+      write.csv(TableDimension(),file=file)
     }
   )
 
@@ -974,19 +975,19 @@ output$pca.plot.pair <- renderPlot({
 
 ############### PCA_3d ############
 
-output$plot_PCA_3d <- renderScatterplotThree({
-  validate(
-    need(input$col.plot.pca != "None","Select a color for the points")
-  )
-  dep = as.factor(dataX.mono.pre()[,input$col.plot.pca])
-  col = palette(rainbow(nlevels(dep)))[dep]
-  scatterplot3js(model.pca()$scores[,1],model.pca()$scores[,2],model.pca()$scores[,3], color=col, size=1, 
-                 axisLabels=c("PC1","PC3","PC2"),grid = F,height = "400px",width="400px",labels=names(Truc.mono()))  
-  
-})
-output$PCA_3d <- renderUI({
-  scatterplotThreeOutput("plot_PCA_3d")
-})
+# output$plot_PCA_3d <- renderScatterplotThree({
+#   validate(
+#     need(input$col.plot.pca != "None","Select a color for the points")
+#   )
+#   dep = as.factor(dataX.mono.pre()[,input$col.plot.pca])
+#   col = palette(rainbow(nlevels(dep)))[dep]
+#   scatterplot3js(model.pca()$scores[,1],model.pca()$scores[,2],model.pca()$scores[,3], color=col, size=1, 
+#                  axisLabels=c("PC1","PC3","PC2"),grid = F,height = "400px",width="400px",labels=names(Truc.mono()))  
+#   
+# })
+# output$PCA_3d <- renderUI({
+#   scatterplotThreeOutput("plot_PCA_3d")
+# })
 
 # ################# output$pca.summary #################
 output$pca.summary.1<-renderPrint({
@@ -1278,24 +1279,6 @@ output$plot.tsne.1 <- renderPlot({
 })
 output$select.col.plot.tsne.1<-renderUI({
   radioButtons("Var.tsne.1","Y-labelling of tsne plot",choices=colnames(dataX.mono.pre())[2:length(colnames(dataX.mono.pre()))])
-})
-
-################# output$DPE.plot #################
-output$DPEplot <- renderImage({
-  outfile <- tempfile(fileext='.jpg')
-  png(outfile, width=input$DPEplot_width, height=input$DPEplot_height)
-  data <- data.mono.4()
-  dataX <- dataX.mono.pre()
-  eval(parse(text=input$DPEeditor))
-  dev.off()
-  list(src = outfile,
-       alt = 'if you see this text, something went wrong')
-},deleteFile=TRUE)
-
-output$DPEprint <- renderPrint({
-  data <- data.mono.4()
-  dataX <- dataX.mono.pre()
-  eval(parse(text=input$DPEeditor))
 })
 
 ##### Train : Predictive Statistics ########

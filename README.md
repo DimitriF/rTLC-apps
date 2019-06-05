@@ -14,32 +14,34 @@ Install the application localy with the following instructions:
 
 Depending on your system, it could be difficult to install this software without basic knowledge of informatics.
 
-Download and install R:
+1. Download and install R:
 http://cran.r-project.org/
 
-Install a fresh version of java:
-https://www.java.com/
 
-If you want to produce a pdf report, you will need to install LaTex:
-http://latex-project.org/ftp.html
-
-Install the dependencies by running this in the R console:
+2. Install the dependencies by running this in the R console:
 
 ```r
 install.packages(
-    c('shiny',"jpeg","png",'tiff','caret','klaR','xlsx',"ChemometricsWithR","gplots","kohonen",'memoise',"devtools","chemometrics",
+    c('shiny',"jpeg","png",'tiff','caret','klaR','readxl',"ChemometricsWithR","gplots","kohonen",'memoise',"devtools","chemometrics",
       "ggplot2","abind","plyr",'dplyr',"prospectr","DiscriMiner","baseline","knitr","xtable",'rmarkdown',
-      "ptw","dtw",'shinyAce','shinydashboard','d3heatmap','randomForest','kernlab','ipred','extraTrees','evtree',
-      'htmltools','httpuv','mime','MASS','pls','rpart','e1071','FBN',"threejs")
+      "ptw","dtw",'shinydashboard','d3heatmap','randomForest','kernlab','ipred','extraTrees','evtree',
+      'htmltools','httpuv','mime','MASS','pls','rpart','e1071','FBN')
     )
-
 ```
 
-Finally, launch the application by running this line:
+3. Clone this repository (or download the zip file if you are on windows)
 
-```r
-shiny::runGitHub(repo='rTLC-apps', username='DimitriF')
 ```
+## From the command line
+git clone git@github.com:DimitriF/rTLC-apps.git
+```
+
+4. In R launch the application using this command.
+
+```
+shiny::runApp('path/to/the/app')
+```
+
 
 
 
